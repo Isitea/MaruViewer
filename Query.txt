@@ -1,0 +1,46 @@
+검색
+http://marumaru.in/?mod=search&keyword=QUERY
+[All] .rcontent .s_post .postbox > a.subject[href*=manga]
+    TITLE: a .sbjbox -> innerText
+    LINK: a -> .href
+    IMAGE: a .thumb img -> .src
+
+만화 목록
+http://marumaru.in/?c=40&p=PAGE
+[All] #bbslist .gallery > .picbox
+    TITLE: .picbox .sbjx a -> innerText
+    LINK: .picbox .pic a -> .href
+    IMAGE: .picbox a img -> .src
+
+만화
+http://marumaru.in/b/manga/242089
+.viewbox #vContent
+    TITLE: .viewbox .subject -> .innerText
+    LINK:[All] #vContent a[href*=wasabi] -> .href
+    IMAGE: #vContent img -> .src
+    Other LINK:[All] #vContent .picbox
+        TITLE: .picbox .sbjx a[href*=manga] -> .innerText
+        LINK: .picbox .sbjx a[href*=manga] -> .href
+        IMAGE: .picbox .pic img -> .src
+
+최신 목록
+http://marumaru.in/?c=26&p=PAGE
+[All] #boardList table tbody tr[cid]
+    TITLE: tr[cid] td div[cid] -> firstChild.replace( /^\s*|\s*$/, "" )
+    LINK: tr[cid] td a -> .href.replace( /&p=\d+/, "$1" )
+    IMAGE: tr[cid] td .image-thumb -> .style.backgroundImage.replace( /.*?"(.+)".*/, "$1" )
+
+최신
+http://marumaru.in/b/mangaup/271711
+.viewbox #vContent
+    TITLE: .viewbox .subject -> .innerText
+    LINK: #vContent a[href*=wasabi] -> .href
+    IMAGE: #vContent img -> .src
+    Previous LINK: .ctt_box a[href*=manga] -> .href
+
+Daum - JSON request
+http://webtoon.daum.net/data/pc/webtoon/viewer/46971#data/webtoonEpisodes/13
+http://webtoon.daum.net/data/pc/webtoon/viewer_images/46971#data/4/url
+
+http://webtoon.daum.net/data/pc/webtoon/viewer/29400#data/webtoonEpisode/webtoon
+http://webtoon.daum.net/data/mobile/webtoon/viewer?id=29400#data/webtoonEpisodePages
