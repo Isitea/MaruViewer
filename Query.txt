@@ -1,4 +1,4 @@
-검색
+﻿검색
 http://marumaru.in/?mod=search&keyword=QUERY
 [All] .rcontent .s_post .postbox > a.subject[href*=manga]
     TITLE: a .sbjbox -> innerText
@@ -44,3 +44,6 @@ http://webtoon.daum.net/data/pc/webtoon/viewer_images/46971#data/4/url
 
 http://webtoon.daum.net/data/pc/webtoon/viewer/29400#data/webtoonEpisode/webtoon
 http://webtoon.daum.net/data/mobile/webtoon/viewer?id=29400#data/webtoonEpisodePages
+
+Remote debuggin in Electron
+electron --inspect=port
