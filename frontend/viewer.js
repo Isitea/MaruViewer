@@ -90,6 +90,48 @@ function createComicInformationBox ( acrDOM, info ) {
 	} );
 }
 
+//Own class which mimics EventTarget object
+class iEventTarget {
+	constructor () {
+		this.listeners = {};
+		this.oncelisteners = {};
+	}
+
+	addEventListener ( type, callback, { once: once } = { once: false } ) {
+		if ( once ) {
+			if ( !( type in this.oncelisteners ) ) this.oncelisteners[ type ] = [];
+			if ( !this.oncelisteners[ type ].includes( callback ) ) this.oncelisteners[ type ].push( callback );
+		} else {
+			if ( !( type in this.listeners ) ) this.listeners[ type ] = [];
+			if ( !this.listeners[ type ].includes( callback ) ) this.listeners[ type ].push( callback );
+		}
+	}
+
+	removeEventListener ( type, callback ) {
+		if ( type in this.listeners ) {
+			let stack = this.listeners[ type ];
+			if ( stack.includes( callback ) ) stack.splice( stack.indexOf( callback ), 1 );
+		}
+	}
+
+	dispatchEvent ( event ) {
+		if ( event.type in this.listeners || event.type in this.oncelisteners ) {
+			if ( event.type in this.listeners ) {
+				let stack = this.listeners[ event.type ];
+				for ( let i = 0; i < stack.length; i++ ) {
+					stack[i].call( this, event );
+				}
+			}
+			if ( event.type in this.oncelisteners ) {
+				let stack = this.oncelisteners[ event.type ];
+				while ( stack.length > 0 ) {
+					stack.pop().call( this, event );
+				}
+			}
+			return !event.defaultPrevented;
+		} else return true;
+	}
+}
 //Own class ImageEx which extends Image object
 class ImageEx extends Image {
 	constructor ( { width: width, height: height, encapsule: encapsule, showOnComplete: showOnComplete } = { encapsule: false, showOnComplete: false } ) {
@@ -153,7 +195,7 @@ class ImageEx extends Image {
 	}
 }
 //Own class which manages ImageEx objects
-class Loader extends Document {
+class Loader extends iEventTarget {
 	constructor ( opt = { encapsule: false, showOnComplete: false } ) {
 		super();
 		this.iList = [];
@@ -210,7 +252,7 @@ class Loader extends Document {
 		return this;
 	}
 	remove ( ImgEx ) {
-		if ( ImgEx.parentNode instanceof HTMLElement ) ImgEx.parentNode.replaceChild( ImgEx );
+		if ( ImgEx.parentNode instanceof HTMLElement ) ImgEx.parentNode.removeChild( ImgEx );
 		this.iList.splice( this.iList.indexOf( ImgEx ), 1 );
 
 		return this;
@@ -232,112 +274,12 @@ class Loader extends Document {
 	}
 
 }
-
-//jQuery type doesn't require new operator but it automatically generate new Object each time when it is called.
-/*function acrDOM ( root ) {
-	let ROOT, NODE;
-	if ( root instanceof Document ) ROOT = root;
-	else if ( root instanceof HTMLElement ) {
-		ROOT = root.ownerDocument;
-		NODE = root;
-	} else {
-		try {
-			ROOT = new Document();
-		} catch ( e ) {
-			ROOT = document.cloneNode( false );
-		}
-
-		if ( root instanceof Object ) NODE = this.create( root );
-	}
-
-	function create ( List ) {
-		let iList = [], oList = [];
-		if ( !( List instanceof Array ) ) iList.push( List );
-		else iList = List;
-
-		for ( let item of iList ) {
-			switch ( typeof item ) {
-				case "string":
-					oList.push( ROOT.createTextNode( item ) );
-					break;
-				case "object":
-					for ( const [ TagName, Attr ] of Object.entries( item ) ) {
-						oList.push( ROOT.createElement( TagName ) );
-						let _CHILD = Attr._CHILD;
-						delete  Attr._CHILD;
-						for ( const [ key, value ] of Object.entries( Attr ) )  {
-							switch ( key ) {
-								case "style":
-									oList[ oList.length - 1 ].style.cssText = value;
-									break;
-								default:
-									oList[ oList.length - 1 ][ key ] = value;
-							}
-						}
-						if ( _CHILD !== undefined ) append( _CHILD, oList[ oList.length - 1 ] );
-					}
-					break;
-				default:
-			}
-		}
-
-		if ( List instanceof Array ) return oList;
-		else return oList[0];
-	}
-
-	function append ( Child, Parent ) {
-		let iChild = [], iParent;
-		if ( !( Child instanceof Array || Child instanceof NodeList ) ) iChild.push( Child );
-		else iChild = Child;
-		if ( Parent === undefined ) iParent = NODE;
-		else if ( Parent instanceof HTMLElement ) iParent = Parent;
-		else iParent = create( Parent );
-
-		for ( let item of iChild ) {
-			iParent.appendChild( ( item instanceof Node ? item : create( item ) ) );
-		}
-
-
-		return acrDOM( iParent );
-	}
-
-	function remove ( List, parent = false ) {
-		let iList = [];
-		if ( !( List instanceof Array || List instanceof NodeList ) ) iList.push( List );
-		else iList = List;
-
-		iList.forEach( ( item ) => {
-			if ( item !== null && item.parentNode !== null ) {
-				if ( parent && item.parentNode.parentNode !== null && item.parentNode !== DOCUMENT.body ) item.parentNode.parentNode.removeChild( item.parentNode );
-				else item.parentNode.removeChild( item );
-			}
-		} );
-	}
-
-	return {
-		create: create,
-		append: append,
-		remove: remove
-	};
-}
-*/
-
 //Class type require new operator each initiation.
 class acrDOM {
-	constructor ( root ) {
-		if ( root instanceof Document ) this.root = root;
-		else if ( root instanceof HTMLElement ) {
-			this.root = root.ownerDocument;
-			this.node = root;
-		} else {
-			try {
-				this.root = new Document();
-			} catch ( e ) {
-				this.root = document.cloneNode( false );
-			}
-
-			if ( root instanceof Object ) this.node = this.create( root );
-		}
+	constructor ( node ) {
+		if ( node instanceof HTMLElement ) this.node = node;
+		else if ( node instanceof Object ) this.node = this.append( node, document.body );
+		else this.node = document.body;
 
 		return this;
 	}
@@ -350,7 +292,7 @@ class acrDOM {
 		for ( let item of iList ) {
 			switch ( typeof item ) {
 				case "string":
-					oList.push( this.root.createTextNode( item ) );
+					oList.push( document.createTextNode( item ) );
 					break;
 				case "object":
 					for ( const [ TagName, Attr ] of Object.entries( item ) ) {
@@ -360,11 +302,11 @@ class acrDOM {
 									if ( ImageEx !== undefined )  oList.push( new ImageEx() );
 								}
 								catch ( e ) {
-									oList.push( this.root.createElement( "img" ) );
+									oList.push( new Image() );
 								}
 								break;
 							default:
-								oList.push( this.root.createElement( TagName ) );
+								oList.push( document.createElement( TagName ) );
 						}
 						let _CHILD = Attr._CHILD;
 						delete  Attr._CHILD;
@@ -393,19 +335,19 @@ class acrDOM {
 		else return oList[0];
 	}
 
-	append ( Child, Parent ) {
+	append ( Child, Parent = this.node ) {
 		let iChild = [], iParent;
 		if ( !( Child instanceof Array || Child instanceof NodeList ) ) iChild.push( Child );
 		else iChild = Child;
-		if ( Parent === undefined ) iParent = this.node;
-		else if ( Parent instanceof HTMLElement ) iParent = Parent;
+		if ( Parent instanceof HTMLElement ) iParent = Parent;
 		else iParent = this.create( Parent );
 
 		for ( let item of iChild ) {
 			iParent.appendChild( ( item instanceof Node ? item : this.create( item ) ) );
 		}
 
-		return this;
+		if ( Parent instanceof HTMLElement ) return this;
+		else return iParent;
 	}
 
 	remove ( List, parent = false ) {
@@ -415,7 +357,7 @@ class acrDOM {
 
 		iList.forEach( ( item ) => {
 			if ( item !== null && item.parentNode !== null ) {
-				if ( parent && item.parentNode.parentNode !== null && item.parentNode !== DOCUMENT.body ) item.parentNode.parentNode.removeChild( item.parentNode );
+				if ( parent && item.parentNode.parentNode !== null && item.parentNode !== item.ownerDocument.body ) item.parentNode.parentNode.removeChild( item.parentNode );
 				else item.parentNode.removeChild( item );
 			}
 		} );
