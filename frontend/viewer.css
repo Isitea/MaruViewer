@@ -1,0 +1,100 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+html, body {
+    overflow: hidden;
+    overflow-y: auto;
+    width: 100vw;
+    height: 100vh;
+    background: rgba( 0, 0, 0, 0.75 );
+}
+
+/* Comic information box */
+div.comic-infomation-box {
+    width: 256px;
+    height: 384px;
+    float: left;
+    overflow: hidden;
+    color: rgba( 255, 255, 255, 1 );
+    margin: 3px;
+    border: solid rgba( 128, 128, 128, 0.75 ) 3px;
+    transition-duration: 500ms;
+}
+
+div.comic-infomation-box {
+    width: calc( 128px + 64px );
+    height: calc( 256px + 32px );
+}
+
+div.comic-infomation-box:hover {
+    z-index: 999;
+    transform: translate( 4px, 4px );
+    box-shadow: 0 0 16px white, 0 0 16px white;
+}
+
+div.comic-infomation-box > img.graphic {
+    max-width: 100%;
+    max-height: 100%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate( -50%, -50% );
+}
+
+div.comic-infomation-box > div.text {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 3em;
+    font-size: 1em;
+    line-height: 3em;
+    text-align: center;
+    background: rgba( 0, 0, 0, 0.75 );
+}
+
+div.comic-infomation-box > div.text > div {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    animation: toLeft 10s linear infinite ;
+}
+
+div.comic-infomation-box > div.text > div:nth-child(1) {
+    left: 0;
+}
+
+div.comic-infomation-box > div.text > div:nth-child(2) {
+    left: 200%;
+}
+
+div.comic-infomation-box > div.text > div > div {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    animation: toLeft 5s linear infinite both;
+    animation-play-state: paused;
+}
+
+div.comic-infomation-box:hover > div.text > div > div {
+    animation-play-state: running;
+}
+
+div.comic-infomation-box > div.text > div > div:nth-child(1) {
+    left: 0;
+}
+
+div.comic-infomation-box > div.text > div > div:nth-child(2) {
+    left: 100%;
+}
+
+@keyframes toLeft {
+    0% { transform: translateX( 0 ); }
+    100% { transform: translateX( -100% ); }
+}
+
