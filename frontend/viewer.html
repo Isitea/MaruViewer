@@ -3,18 +3,19 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Maru viewer</title>
-	<script src="viewer.js" ></script>
 	<script src="../library/pace.min.js" ></script>
+	<script defer src="https://use.fontawesome.com/releases/v5.0.4/js/all.js"></script>
+	<script defer src="viewer.js" ></script>
 	<link rel="stylesheet" href="viewer.css" />
-	<link rel="stylesheet" href="../library/pace-theme-center-atom.css" />
+	<link rel="stylesheet" href="../library/pace-theme-corner-indicator.css" />
 </head>
 <body>
 	<div class="search-panel">
 		<select class="search-select provider" title="provider">
 			<option class="maru" value="maru">Maru</option>
 		</select>
-		<input class="search-query" type="text" title="title">
-		<button class="search-start">Search</button>
+		<input class="search-query" type="text" placeholder="What comic are you looking for?">
+		<button class="search-start"><i class="fa fa-search"></i></button>
 	</div>
 	<div class="query-result">
 

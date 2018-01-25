@@ -1,18 +1,12 @@
-"use strict";
-function test ( k ) { console.log(k); }
+function Observer ( list = []) {
+	let handler = {};
+	for ( const key of list ) {
+		handler[key] = ( target, key, value ) => { console.log( target, key, value ); };
+	}
 
-//Module exports for ECMA Script 6+
-//export { test };
+	return handler;
+}
 
-//Module exports for CommonJS
-try {
-	exports.test = test;
-} catch ( e ) {
-	if ( e.message === "exports is not defined" ) console.log( "Module loader doesn't support CommonJS style." );
-}
-//Module exports for Asynchronous Module Definition
-try {
-	define( 'test', [ 'k' ], { test: test } );
-} catch ( e ) {
-	if ( e.message === "define is not defined" ) console.log( "Module loader doesn't support AMD style." );
-}
+var config = new Proxy( {}, Observer( [ "set", "deleteProperty" ] ) );
+config.test = 123;
+delete config.test;

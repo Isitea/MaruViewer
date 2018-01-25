@@ -2,7 +2,9 @@
   "name": "maruviewer.electron.isitea",
   "version": "0.0.1",
   "main": "backend/server.js",
-  "dependencies": {},
+  "dependencies": {
+    "jsonfile": "^4.0.0"
+  },
   "devDependencies": {},
   "repository": {
     "type": "git",
