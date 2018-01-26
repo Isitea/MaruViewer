@@ -6,7 +6,3 @@ function Observer ( list = []) {
 
 	return handler;
 }
-
-var config = new Proxy( {}, Observer( [ "set", "deleteProperty" ] ) );
-config.test = 123;
-delete config.test;

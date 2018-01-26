@@ -5,7 +5,7 @@
 	const { iEventTarget } = require( "./iEventTarget" );
 	const jsonfile = require( 'jsonfile' );
 
-	class configIO extends  iEventTarget {
+	class configIO extends iEventTarget {
 		constructor ( file ) {
 			function Observer ( list = []) {
 				let handler = {};
