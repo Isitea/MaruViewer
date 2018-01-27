@@ -23,13 +23,19 @@
 			this.oncelisteners = {};
 		}
 
-		addEventListener ( type, callback, { once: once } = { once: false } ) {
+		addEventListener ( type, callback, { once, prior } = { once: false, prior: false } ) {
 			if ( once ) {
 				if ( !( type in this.oncelisteners ) ) this.oncelisteners[ type ] = [];
-				if ( !this.oncelisteners[ type ].includes( callback ) ) this.oncelisteners[ type ].push( callback );
+				if ( !this.oncelisteners[ type ].includes( callback ) ) {
+					if ( prior ) this.oncelisteners[ type ].unshift( callback );
+					else this.oncelisteners[ type ].push( callback );
+				}
 			} else {
 				if ( !( type in this.listeners ) ) this.listeners[ type ] = [];
-				if ( !this.listeners[ type ].includes( callback ) ) this.listeners[ type ].push( callback );
+				if ( !this.listeners[ type ].includes( callback ) ) {
+					if ( prior ) this.oncelisteners[ type ].unshift( callback );
+					else this.oncelisteners[ type ].push( callback );
+				}
 			}
 		}
 
@@ -42,16 +48,19 @@
 
 		dispatchEvent ( event ) {
 			if ( event.type in this.listeners || event.type in this.oncelisteners ) {
+				if ( event.type in this.oncelisteners ) {
+					let stack = this.oncelisteners[ event.type ];
+					while ( stack.length > 0 ) {
+						stack.shift().call( this, event );
+						if ( event.cancelBubble ) return !event.defaultPrevented;
+					}
+				}
+
 				if ( event.type in this.listeners ) {
 					let stack = this.listeners[ event.type ];
 					for ( let i = 0; i < stack.length; i++ ) {
 						stack[i].call( this, event );
-					}
-				}
-				if ( event.type in this.oncelisteners ) {
-					let stack = this.oncelisteners[ event.type ];
-					while ( stack.length > 0 ) {
-						stack.pop().call( this, event );
+						if ( event.cancelBubble ) return !event.defaultPrevented;
 					}
 				}
 				return !event.defaultPrevented;

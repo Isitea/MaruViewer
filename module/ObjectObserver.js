@@ -27,17 +27,26 @@
 			if ( id !== undefined && id !== null ) this.id = id;
 		}
 
+		preventDefault ( prevented, operation ) {
+			if ( prevented ) {
+				let blocked = new Error( "Operation blocked." );
+				blocked.operation = operation;
+				throw blocked;
+			}
+		}
+
 		apply ( target, thisArg, ...args ) {
-			let event = new Event( "apply" );
+			let operation = "apply";
+			let event = new Event( operation );
 			Object.assign( event, { id: this.id, object: target, thisArg: thisArg, args: args } );
-			this.dispatchEvent( event );
+			this.dispatchEvent( event, operation );
 
 			return Reflect.apply( target, thisArg, args );
 		}
 		construct ( target, ...args ) {
 			let event = new Event( "construct" );
 			Object.assign( event, { id: this.id, object: target, args: args } );
-			this.dispatchEvent( event );
+			preventDefault( this.dispatchEvent( event ) );
 
 			return Reflect.construct( target, argss );
 		}
