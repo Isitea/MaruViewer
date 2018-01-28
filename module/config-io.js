@@ -3,6 +3,7 @@
 ( () => {
 	const { moduleExporter } = require( "./module-exporter" );
 	const { iEventTarget } = require( "./iEventTarget" );
+	const { iOO } = require( "./ObjectObserver" );
 	const jsonfile = require( 'jsonfile' );
 
 	class configIO extends iEventTarget {
@@ -20,7 +21,8 @@
 
 			super();
 			const SELF = this;
-			this.config = new Proxy( {}, Observer( [ "set", "deleteProperty" ] ) );
+			this.iOO = new iOO( {} );
+			this.config = this.iOO.Observed;
 			this.file = file;
 		}
 

@@ -24,15 +24,14 @@
 		}
 
 		addEventListener ( type, callback, { once, prior } = { once: false, prior: false } ) {
-			if ( once ) {
-				if ( !( type in this.oncelisteners ) ) this.oncelisteners[ type ] = [];
-				if ( !this.oncelisteners[ type ].includes( callback ) ) {
-					if ( prior ) this.oncelisteners[ type ].unshift( callback );
-					else this.oncelisteners[ type ].push( callback );
-				}
-			} else {
-				if ( !( type in this.listeners ) ) this.listeners[ type ] = [];
-				if ( !this.listeners[ type ].includes( callback ) ) {
+			if ( !( type in this.listeners ) ) {
+				this.listeners[ type ] = [];
+				this.oncelisteners[ type ] = [];
+			}
+			if ( !this.listeners[ type ].includes( callback ) ) {
+				if ( prior ) this.listeners[ type ].unshift( callback );
+				else this.listeners[ type ].push( callback );
+				if ( once ) {
 					if ( prior ) this.oncelisteners[ type ].unshift( callback );
 					else this.oncelisteners[ type ].push( callback );
 				}
@@ -41,28 +40,29 @@
 
 		removeEventListener ( type, callback ) {
 			if ( type in this.listeners ) {
-				let stack = this.listeners[ type ];
-				if ( stack.includes( callback ) ) stack.splice( stack.indexOf( callback ), 1 );
+				let stack = this.listeners[ type ], stack_once = this.oncelisteners[ type ];
+				if ( stack.includes( callback ) ) {
+					stack.splice( stack.indexOf( callback ), 1 );
+					if ( stack_once.includes( callback ) ) stack_once.splice( stack_once.indexOf( callback ), 1 );
+				}
 			}
 		}
 
 		dispatchEvent ( event ) {
-			if ( event.type in this.listeners || event.type in this.oncelisteners ) {
-				if ( event.type in this.oncelisteners ) {
-					let stack = this.oncelisteners[ event.type ];
-					while ( stack.length > 0 ) {
-						stack.shift().call( this, event );
-						if ( event.cancelBubble ) return !event.defaultPrevented;
+			if ( event.type in this.listeners ) {
+				let stack = this.listeners[ event.type ], stack_once = this.oncelisteners[ event.type ];
+				for ( let i = 0; i < stack.length; ) {
+					if ( stack_once.includes( stack[i] ) ) {
+						stack_once.shift().call( this, event );
+						stack.splice( i, 1 );
+					} else {
+						stack[i++].call( this, event );
 					}
+
+					//Currently, .stopPropagation() and .stopImmediatePropagation() were treated as same action.
+					if ( event.cancelBubble ) return !event.defaultPrevented;
 				}
 
-				if ( event.type in this.listeners ) {
-					let stack = this.listeners[ event.type ];
-					for ( let i = 0; i < stack.length; i++ ) {
-						stack[i].call( this, event );
-						if ( event.cancelBubble ) return !event.defaultPrevented;
-					}
-				}
 				return !event.defaultPrevented;
 			} else return true;
 		}

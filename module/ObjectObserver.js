@@ -21,32 +21,32 @@
 
 	//Own class which observes Object with Proxy, which traps native execution.
 	class iOO extends iEventTarget {
-		constructor ( object, id ) {
+		constructor ( object, { id, cancelable } = { id: undefined, cancelable: false } ) {
 			super();
 			this.Observed = Proxy.revocable( object, this );
-			if ( id !== undefined && id !== null ) this.id = id;
+			this.id = id;
+			this.cancelable = cancelable;
 		}
 
-		preventDefault ( prevented, operation ) {
-			if ( prevented ) {
-				let blocked = new Error( "Operation blocked." );
+		isDefaultPrevented ( prevented, operation ) {
+			if ( !prevented ) {
+				let blocked = new TypeError( "Operation blocked." );
 				blocked.operation = operation;
 				throw blocked;
 			}
 		}
 
 		apply ( target, thisArg, ...args ) {
-			let operation = "apply";
-			let event = new Event( operation );
+			let event = new Event( "apply" );
 			Object.assign( event, { id: this.id, object: target, thisArg: thisArg, args: args } );
-			this.dispatchEvent( event, operation );
+			this.dispatchEvent( event );
 
 			return Reflect.apply( target, thisArg, args );
 		}
 		construct ( target, ...args ) {
 			let event = new Event( "construct" );
 			Object.assign( event, { id: this.id, object: target, args: args } );
-			preventDefault( this.dispatchEvent( event ) );
+			this.dispatchEvent( event );
 
 			return Reflect.construct( target, argss );
 		}
@@ -71,12 +71,26 @@
 
 			return Reflect.getOwnPropertyDescriptor( target, propertyKey );
 		}
+		getPrototypeOf ( target ) {
+			let event = new Event( "getPrototypeOf" );
+			Object.assign( event, { id: this.id, object: target } );
+			this.dispatchEvent( event );
+
+			return Reflect.getPrototypeOf( target );
+		}
 		has ( target, propertyKey ) {
 			let event = new Event( "has" );
 			Object.assign( event, { id: this.id, object: target, propertyKey: propertyKey } );
 			this.dispatchEvent( event );
 
 			return Reflect.has( target, propertyKey );
+		}
+		isExtensible ( target ) {
+			let event = new Event( "isExtensible" );
+			Object.assign( event, { id: this.id, object: target } );
+			this.dispatchEvent( event );
+
+			return Reflect.isExtensible( target );
 		}
 		ownKeys ( target ) {
 			let event = new Event( "ownKeys" );
@@ -98,6 +112,13 @@
 			this.dispatchEvent( event );
 
 			return Reflect.set( target, propertyKey, value, receiver );
+		}
+		setPrototypeOf ( target, prototype ) {
+			let event = new Event( "setPrototypeOf" );
+			Object.assign( event, { id: this.id, object: target, prototype: prototype } );
+			this.dispatchEvent( event );
+
+			return Reflect.setPrototypeOf( target, prototype );
 		}
 	}
 
