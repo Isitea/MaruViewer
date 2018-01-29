@@ -4,17 +4,20 @@
 	try { if ( require ) moduleLoader = "CommonJS"; } catch ( e ) {}
 	try { if ( requirejs ) moduleLoader = "AMD"; } catch ( e ) {}
 
-	let moduleExporter, iEventTarget;
+	let moduleExporter, iEventTarget, ImageEx;
 	switch ( moduleLoader ) {
 		case "CommonJS":
 			( ( modEx ) => { moduleExporter = modEx.moduleExporter; } )( require( "./module-exporter" ) );
+			( ( modEx ) => { ImageEx = modEx.ImageEx; } )( require( "./ImageEx" ) );
 			( ( modEx ) => { iEventTarget = modEx.iEventTarget; } )( require( "./iEventTarget" ) );
 			break;
 		case "AMD":
 			requirejs( [ './module-exporter' ], ( modEx ) => { moduleExporter = modEx; } );
+			requirejs( [ './ImageEx' ], ( modEx ) => { ImageEx = modEx; } );
 			requirejs( [ './iEventTarget' ], ( modEx ) => { iEventTarget = modEx; } );
 			break;
 		case undefined:
+			ImageEx = window.ImageEx;
 			iEventTarget = window.iEventTarget;
 			break;
 	}
@@ -25,6 +28,7 @@
 			super();
 			this.iList = [];
 			this.ImgEx = () => {
+				//ImageEx dependency
 				let ImgEx = new ImageEx( opt );
 				ImgEx.addEventListener( "Progress", this );
 				ImgEx.addEventListener( "Error", this );
@@ -81,6 +85,16 @@
 			this.iList.splice( this.iList.indexOf( ImgEx ), 1 );
 
 			return this;
+		}
+		recycle () {
+			while ( this.iList.length > 0 ) {
+				let ImgEx = this.iList.shift();
+				if ( ImgEx.parentNode instanceof HTMLElement ) {
+					ImgEx.parentNode.removeChild( ImgEx );
+				}
+			}
+
+			return true;
 		}
 		get urls () {
 			let list = [];

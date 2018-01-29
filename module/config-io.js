@@ -7,41 +7,54 @@
 	const jsonfile = require( 'jsonfile' );
 
 	class configIO extends iEventTarget {
-		constructor ( file ) {
-			function Observer ( list = []) {
-				let handler = {};
-				for ( const key of list ) {
-					handler[key] = ( target, key, value ) => {
-						return SELF.onChange( { name: key, value: target[key] }, { name: key, value: value }, target );
-					};
-				}
-
-				return handler;
-			}
-
+		constructor ( file = "maruviewer.settings.json" ) {
 			super();
-			const SELF = this;
 			this.iOO = new iOO( {} );
+			this.iOO.IO = this;
+			this.iOO.addEventListener( "set", this.onChange );
+			this.iOO.addEventListener( "deleteProperty", this.onChange );
 			this.config = this.iOO.Observed;
 			this.file = file;
 		}
 
-		onChange ( Old, New, target ) {
-			if ( New.value === undefined ) delete target[New.name];
-			else target[New.name] = New.value;
-			let event = new Event( "change" );
-			Object.assign( event, { old: Old, new: New } );
-			this.dispatchEvent( event );
-
-			return true;
+		onChange ( event ) {
+			let details = event[event.type], changes;
+			switch ( event.type ) {
+				case "set":
+					if ( details.object[details.propertyKey] !== details.value ) {
+						changes = {
+							old: { [details.propertyKey]: details.object[details.propertyKey] },
+							new: { [details.propertyKey]: details.value }
+						}
+					}
+					break;
+				case "deleteProperty":
+					if ( details.object[details.propertyKey] !== undefined ) {
+						changes = {
+							old: { [details.propertyKey]: details.object[details.propertyKey] },
+							new: { [details.propertyKey]: undefined }
+						}
+					}
+					break;
+			}
+			if ( changes !== undefined ) {
+				let event = new Event( "change" );
+				Object.assign( event, { details: changes } );
+				this.IO.dispatchEvent( event );
+			}
 		}
 
-		get ( key ) {
-			if ( key === undefined ) return Object.assign( {}, this.config );
-			return this.config[key];
+		get ( keys = [] ) {
+			if ( !( keys instanceof Array ) ) keys = [ keys ];
+			if ( keys.length === 0 ) return Object.assign( {}, this.config );
+			else {
+				let result = {};
+				for ( const key of keys ) if ( this.config[key] !== undefined ) Object.assign( result, { [key]: this.config[key] } );
+				return result;
+			}
 		}
 
-		overwrite ( data ) {
+		set ( data ) {
 			for ( const key of Object.keys( this.config ) ) {
 				if ( !( key in data ) ) {
 					delete this.config[ key ];
@@ -54,14 +67,14 @@
 			( ( res ) => { jsonfile.readFile( this.file, ( err, obj ) => {
 				if ( err !== null ) console.log( err );
 				else {
-					this.overwrite( obj );
+					this.set( obj );
 					res( obj );
 				}
 			} ); } )( response );
 		}
 
 		write ( data ) {
-			jsonfile.writeFile( "maruviewer.settings.json", data, ( err ) => {
+			jsonfile.writeFile( this.file, data, ( err ) => {
 				if ( err !== null ) console.log( err );
 			} );
 		}

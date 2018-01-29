@@ -20,51 +20,64 @@
 	class iEventTarget {
 		constructor () {
 			this.listeners = {};
-			this.oncelisteners = {};
+			this.once = {};
+			this.passive = {};
 		}
 
-		addEventListener ( type, callback, { once, prior } = { once: false, prior: false } ) {
+		addEventListener ( type, listener, { once, prior, passive } = { once: false, prior: false, passive: false } ) {
 			if ( !( type in this.listeners ) ) {
 				this.listeners[ type ] = [];
-				this.oncelisteners[ type ] = [];
+				this.once[ type ] = [];
+				this.passive[ type ] = [];
 			}
-			if ( !this.listeners[ type ].includes( callback ) ) {
-				if ( prior ) this.listeners[ type ].unshift( callback );
-				else this.listeners[ type ].push( callback );
+			if ( !this.listeners[ type ].includes( listener ) ) {
+				if ( prior ) this.listeners[ type ].unshift( listener );
+				else this.listeners[ type ].push( listener );
 				if ( once ) {
-					if ( prior ) this.oncelisteners[ type ].unshift( callback );
-					else this.oncelisteners[ type ].push( callback );
+					if ( prior ) this.once[ type ].unshift( listener );
+					else this.once[ type ].push( listener );
+				}
+				if ( passive ) {
+					if ( prior ) this.passive[ type ].unshift( listener );
+					else this.passive[ type ].push( listener );
 				}
 			}
 		}
 
-		removeEventListener ( type, callback ) {
+		removeEventListener ( type, listener ) {
 			if ( type in this.listeners ) {
-				let stack = this.listeners[ type ], stack_once = this.oncelisteners[ type ];
-				if ( stack.includes( callback ) ) {
-					stack.splice( stack.indexOf( callback ), 1 );
-					if ( stack_once.includes( callback ) ) stack_once.splice( stack_once.indexOf( callback ), 1 );
+				let stack = this.listeners[ type ], stack_once = this.once[ type ], stack_passive = this.passive[ type ];
+				if ( stack.includes( listener ) ) {
+					stack.splice( stack.indexOf( listener ), 1 );
+					if ( stack_once.includes( listener ) ) stack_once.splice( stack_once.indexOf( listener ), 1 );
+					if ( stack_passive.includes( listener ) ) stack_passive.splice( stack_passive.indexOf( listener ), 1 );
 				}
 			}
 		}
 
 		dispatchEvent ( event ) {
 			if ( event.type in this.listeners ) {
-				let stack = this.listeners[ event.type ], stack_once = this.oncelisteners[ event.type ];
+				let stack = this.listeners[ event.type ], stack_once = this.once[ event.type ], stack_passive = this.passive[ event.type ];
 				for ( let i = 0; i < stack.length; ) {
-					if ( stack_once.includes( stack[i] ) ) {
-						stack_once.shift().call( this, event );
-						stack.splice( i, 1 );
-					} else {
-						stack[i++].call( this, event );
-					}
+					const preventDefault = event.defaultPrevented;
+
+					if ( typeof stack[i] === "function" ) stack[ i ].call( this, event );
+					else if ( typeof stack[i].handleEvent === "function" ) stack[ i ].handleEvent.call( this, event );
+
+					if ( stack_passive.includes( stack[i] ) ) event.defaultPrevented = preventDefault;
+
+					if ( stack_once.includes( stack[i] ) ) this.removeEventListener( event.type, stack[ i ] );
+					else i++;
 
 					//Currently, .stopPropagation() and .stopImmediatePropagation() were treated as same action.
+					//Difference between them is a stage which effects.
+					//.stopPropagation() effects on "bubbling phase", and .stopImmediatePropagation() does on "at target phase".
+					//Phase is shown in .eventPhase, which can have 0(NONE), 1(CAPTURING_PHASE), 2(AT_TARGET), 3(BUBBLING_PHASE)
+					//Further details on https://developer.mozilla.org/en-US/docs/Web/API/Event/eventPhase
 					if ( event.cancelBubble ) return !event.defaultPrevented;
 				}
-
-				return !event.defaultPrevented;
-			} else return true;
+			}
+			return !event.defaultPrevented;
 		}
 	}
 

@@ -80,9 +80,10 @@ function createComicInformationBox ( acrDOM, info ) {
 }
 
 //Require must before using.
-const { ImageEx } = require( "../module/ImageEx" );
 const { ImageExLoader } = require( "../module/ImageExLoader" );
+const { ImageEx } = require( "../module/ImageEx" );
 const { acrDOM } = require( "../module/acrDOM" );
+//const { iOO } = require( "../module/ObjectObserver" );
 const { configIO } = require( "../module/config-io" );
 
 function tempMain () {
@@ -91,13 +92,13 @@ function tempMain () {
 	} );
 	//SearchOnMaru( '양아치' );
 	let cfg = new configIO();
-	cfg.addEventListener( "change", ( e ) => { console.log( e ); }, { once: false } );
-	cfg.overwrite( { test: 1, isReal: "yes" } );
-	cfg.overwrite( { isReal: "yes" } );
+	console.dir( cfg );
+	cfg.addEventListener( "change", ( e ) => { console.log( e.details.old, e.details.new ); } );
+	cfg.set( { test: 1, isReal: "yes" } );
+	cfg.set( { isReal: "yes" } );
+	cfg.set( { test: 2, alpha: 2, isReal: "yes" } );
 	console.log( cfg.get() );
-	cfg.overwrite( { test: 2, isReal: "yes" } );
-	cfg.overwrite( { test: 2 } );
-	console.log( cfg.get() );
+	cfg.set( { test: 2, alpha: 1, beta: 2 } );
 }
 document.addEventListener( "DOMContentLoaded", tempMain );
 //"maruviewer.settings.json"
