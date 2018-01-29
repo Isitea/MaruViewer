@@ -91,14 +91,10 @@ function tempMain () {
 		SearchOnMaru( document.querySelector( ".search-panel .search-query" ).value );
 	} );
 	//SearchOnMaru( '양아치' );
-	let cfg = new configIO();
-	console.dir( cfg );
+	let cfg = new configIO( "maruviewer.settings.json" );
 	cfg.addEventListener( "change", ( e ) => { console.log( e.details.old, e.details.new ); } );
-	cfg.set( { test: 1, isReal: "yes" } );
-	cfg.set( { isReal: "yes" } );
-	cfg.set( { test: 2, alpha: 2, isReal: "yes" } );
-	console.log( cfg.get() );
-	cfg.set( { test: 2, alpha: 1, beta: 2 } );
+	let cfg_RW = cfg.read( ( e ) => { console.log( "Read: ", e ); } )
+		.then( () => { cfg.set( { alpha: 1, beta: 2, gamma: 3 } ) } );
+	cfg_RW.then( () => { cfg.write( cfg.get(), ( e ) => { console.log( "Write:", e ); } ); });
 }
 document.addEventListener( "DOMContentLoaded", tempMain );
-//"maruviewer.settings.json"

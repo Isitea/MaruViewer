@@ -7,7 +7,7 @@
 	const jsonfile = require( 'jsonfile' );
 
 	class configIO extends iEventTarget {
-		constructor ( file = "maruviewer.settings.json" ) {
+		constructor ( file = "configIO.json" ) {
 			super();
 			this.iOO = new iOO( {} );
 			this.iOO.IO = this;
@@ -15,6 +15,37 @@
 			this.iOO.addEventListener( "deleteProperty", this.onChange );
 			this.config = this.iOO.Observed;
 			this.file = file;
+			const SELF = this;
+
+			this.read = ( response, file = SELF.file ) => {
+				return new Promise( ( resolve, reject ) => {
+					jsonfile.readFile( file, ( err, obj ) => {
+						if ( err !== null ) {
+							switch ( err.errno ) {
+								case -4058:
+									SELF.write( { update: new Date().toString() }, ( data ) => {
+										reject( response, file );
+									}, file );
+									break;
+							}
+						}
+						else {
+							this.set( obj );
+							resolve( obj );
+						}
+					} );
+				} ).then( response ).catch( SELF.read );
+			};
+			this.write = ( data, response, file = SELF.file ) => {
+				return new Promise( ( resolve, reject ) => {
+					Object.assign( data, { update: new Date().toString() } );
+					jsonfile.writeFile( file, data, { spaces: 2 }, ( err ) => {
+						if ( err !== null ) reject( err );
+						else resolve( data );
+					} );
+				} ).then( response );
+
+			};
 		}
 
 		onChange ( event ) {
@@ -61,22 +92,6 @@
 				}
 			}
 			Object.assign( this.config, data );
-		}
-
-		read ( response ) {
-			( ( res ) => { jsonfile.readFile( this.file, ( err, obj ) => {
-				if ( err !== null ) console.log( err );
-				else {
-					this.set( obj );
-					res( obj );
-				}
-			} ); } )( response );
-		}
-
-		write ( data ) {
-			jsonfile.writeFile( this.file, data, ( err ) => {
-				if ( err !== null ) console.log( err );
-			} );
 		}
 	}
 
