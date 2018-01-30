@@ -44,6 +44,14 @@
 			}
 		}
 
+		removeEventListenerAll ( type ) {
+			if ( type in this.listeners ) {
+				this.listeners[ type ] = [];
+				this.once[ type ] = [];
+				this.passive[ type ] = [];
+			}
+		}
+
 		removeEventListener ( type, listener ) {
 			if ( type in this.listeners ) {
 				let stack = this.listeners[ type ], stack_once = this.once[ type ], stack_passive = this.passive[ type ];

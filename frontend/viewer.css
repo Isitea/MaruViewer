@@ -1,9 +1,9 @@
 * {
-                    box-sizing: border-box;
-                    margin: 0;
-                    padding: 0;
-                    position: relative;
-                }
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
 
 html, body {
     overflow: hidden;
@@ -17,8 +17,41 @@ body.pace-running {
     cursor: progress;
 }
 
+.query-result {
+    position: absolute;
+    left: 50%;
+    transform: translateX( -50% );
+}
+@media (min-width: 200px) {
+    .query-result { width: 200px }
+}
+@media (min-width: 400px) {
+    .query-result { width: 400px }
+}
+@media (min-width: 600px) {
+    .query-result { width: 600px }
+}
+@media (min-width: 800px) {
+    .query-result { width: 800px }
+}
+@media (min-width: 1000px) {
+    .query-result { width: 1000px }
+}
+@media (min-width: 1200px) {
+    .query-result { width: 1200px }
+}
+@media (min-width: 1400px) {
+    .query-result { width: 1400px }
+}
+@media (min-width: 1600px) {
+    .query-result { width: 1600px }
+}
+@media (min-width: 1800px) {
+    .query-result { width: 1800px }
+}
+
 /* Comic information box | start */
-div.comic-infomation-box {
+div.comic-information-box {
     width: calc( 128px + 64px );
     height: calc( 256px + 32px );
     float: left;
@@ -29,13 +62,13 @@ div.comic-infomation-box {
     transition-duration: 500ms;
 }
 
-div.comic-infomation-box:hover {
+div.comic-information-box:hover {
     z-index: 999;
     transform: translate( 4px, 4px );
     box-shadow: 0 0 16px white, 0 0 16px white;
 }
 
-div.comic-infomation-box:hover::before {
+div.comic-information-box:hover::before {
     position: absolute;
     content: "";
     top: 0;
@@ -47,7 +80,7 @@ div.comic-infomation-box:hover::before {
     pointer-events: none;
 }
 
-div.comic-infomation-box > img.graphic {
+div.comic-information-box > img.graphic {
     max-width: 100%;
     max-height: 100%;
     top: 50%;
@@ -55,7 +88,7 @@ div.comic-infomation-box > img.graphic {
     transform: translate( -50%, -50% );
 }
 
-div.comic-infomation-box > div.text {
+div.comic-information-box > div.text {
     position: absolute;
     bottom: 0;
     width: 1000%;
@@ -67,24 +100,24 @@ div.comic-infomation-box > div.text {
     display: flex;
 }
 
-div.comic-infomation-box > div.text > div.first-wrap {
+div.comic-information-box > div.text > div.first-wrap {
     height: 100%;
     display: flex;
     animation: toLeft 5s linear infinite;
 }
 
-div.comic-infomation-box > div.text > div.first-wrap > div.second-wrap {
+div.comic-information-box > div.text > div.first-wrap > div.second-wrap {
     height: 100%;
     display: flex;
     animation: toLeft 2.5s linear infinite;
     animation-play-state: paused;
 }
 
-div.comic-infomation-box:hover > div.text > div.first-wrap > div.second-wrap {
+div.comic-information-box:hover > div.text > div.first-wrap > div.second-wrap {
     animation-play-state: running;
 }
 
-div.comic-infomation-box > div.text > div.first-wrap > div.second-wrap > div {
+div.comic-information-box > div.text > div.first-wrap > div.second-wrap > div {
     float: left;
     padding: 0 10px 0 10px;
 }
@@ -94,9 +127,9 @@ div.comic-infomation-box > div.text > div.first-wrap > div.second-wrap > div {
     100% { transform: translateX( -33.3% ); }
 }
 /* Comic information box | end /
-/* Search box */
+/* Search box | start */
 .search-panel {
-    max-width: 256px;
+    /*max-width: 414px;*/
     width: 100%;
     border: 3px solid #00B4CC;
     height: 26px;
@@ -130,4 +163,60 @@ div.comic-infomation-box > div.text > div.first-wrap > div.second-wrap > div {
     text-align: center;
     color: #fff;
     cursor: pointer;
+}
+/* Search box | end */
+.mode-selector {
+    width: 100%;
+    height: 64px;
+    background: rgba( 0, 0, 0, 1 );
+}
+.mode-selector[data-mode] .mode-trigger {
+    width: 100%;
+    height: 32px;
+    background: whitesmoke;
+    text-align: center;
+    line-height: 32px;
+}
+.mode-selector[data-mode] > div.modes,
+.mode-selector[data-mode] > div.search-panel,
+.mode-selector[data-mode=select] .mode-trigger {
+    display: none;
+}
+.mode-selector[data-mode=select] {
+    height: 100%;
+    position: fixed;
+    z-index: 99999;
+    color: white;
+}
+.mode-selector[data-mode=select] > div.modes {
+    top: 50%;
+    left: 50%;
+    transform: translate( -50%, -50% );
+    position: absolute;
+}
+@media ( min-width: 600px ) {
+    .mode-selector[data-mode=select] > div.modes {
+        display: block;
+    }
+    .mode-selector[data-mode=select] > div.modes > div.separator {
+        float: none;
+    }
+}
+@media ( max-width: 600px ) {
+    .mode-selector[data-mode=select] > div.modes {
+        display: inline-flex;
+    }
+    .mode-selector[data-mode=select] > div.modes > div.separator {
+        float: left;
+    }
+}
+.mode-selector[data-mode=select] > div.modes > div.separator > div {
+    border: white solid 4px;
+    margin: 8px;
+    float: left;
+    width: 128px;
+    height: 128px;
+}
+.mode-selector[data-mode=search] .search-panel {
+    display: block;
 }

@@ -6,7 +6,8 @@ http://marumaru.in/?mod=search&keyword=QUERY
     IMAGE: a .thumb img -> .src
 
 만화 목록
-http://marumaru.in/?c=40&p=PAGE
+http://marumaru.in/?c=40&sort=gid&p=PAGE
+http://marumaru.in/?c=40&sort=subject&p=PAGE
 [All] #bbslist .gallery > .picbox
     TITLE: .picbox .sbjx a -> innerText
     LINK: .picbox .pic a -> .href

@@ -10,15 +10,29 @@
 	<link rel="stylesheet" href="../library/pace-theme-corner-indicator.css" />
 </head>
 <body>
-	<div class="search-panel">
-		<select class="search-select provider" title="provider">
-			<option class="maru" value="maru">Maru</option>
-		</select>
-		<input class="search-query" type="text" placeholder="What comic are you looking for?">
-		<button class="search-start"><i class="fa fa-search"></i></button>
+	<div class="mode-selector" data-mode="search">
+		<div class="mode-trigger" data-mode="select">Menu</div>
+		<div class="modes">
+			<div class="separator">
+				<div class="mode-search" data-mode="search">Search</div>
+				<div class="mode-list-recent" data-mode="recent">Recently updated</div>
+			</div>
+			<div class="separator">
+				<div class="mode-list-name" data-mode="byName">By name</div>
+				<div class="mode-list-activity" data-mode="byActivity">By activity</div>
+			</div>
+		</div>
+		<div class="search-panel">
+			<select class="search-select provider" title="provider">
+				<option class="maru" value="maru">Maru</option>
+			</select>
+			<input class="search-query" type="text" placeholder="What comic are you looking for?">
+			<button class="search-start"><i class="fa fa-search"></i></button>
+		</div>
 	</div>
 	<div class="query-result">
 
 	</div>
+	<div class="request-more"></div>
 </body>
 </html>
