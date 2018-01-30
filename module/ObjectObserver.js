@@ -21,12 +21,13 @@
 
 	//Own class which observes Object with Proxy, which traps native execution.
 	class iOO extends iEventTarget {
-		constructor ( object, { id, cancelable } = { id: undefined, cancelable: false } ) {
+		constructor ( object, { id, cancelable } = { id: Date.now().toString(), cancelable: false } ) {
 			super();
+			this.id = Symbol.for(id);
+			this[this.id] = object;
 			const rev = Proxy.revocable( object, this );
 			this.Observed = rev.proxy;
 			this.revoke = rev.revoke;
-			this.id = id;
 			this.cancelable = cancelable;
 		}
 

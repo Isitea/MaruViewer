@@ -58,16 +58,14 @@
 		dispatchEvent ( event ) {
 			if ( event.type in this.listeners ) {
 				let stack = this.listeners[ event.type ], stack_once = this.once[ event.type ], stack_passive = this.passive[ event.type ];
-				for ( let i = 0; i < stack.length; ) {
+				for ( let listener of stack ) {
 					const preventDefault = event.defaultPrevented;
 
-					if ( typeof stack[i] === "function" ) stack[ i ].call( this, event );
-					else if ( typeof stack[i].handleEvent === "function" ) stack[ i ].handleEvent.call( this, event );
+					if ( typeof listener === "function" ) listener.call( this, event );
+					else if ( typeof listener.handleEvent === "function" ) listener.handleEvent.call( this, event );
 
-					if ( stack_passive.includes( stack[i] ) ) event.defaultPrevented = preventDefault;
-
-					if ( stack_once.includes( stack[i] ) ) this.removeEventListener( event.type, stack[ i ] );
-					else i++;
+					if ( stack_passive.includes( listener ) ) event.defaultPrevented = preventDefault;
+					if ( stack_once.includes( listener ) ) this.removeEventListener( event.type, listener );
 
 					//Currently, .stopPropagation() and .stopImmediatePropagation() were treated as same action.
 					//Difference between them is a stage which effects.

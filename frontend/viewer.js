@@ -86,15 +86,21 @@ const { acrDOM } = require( "../module/acrDOM" );
 //const { iOO } = require( "../module/ObjectObserver" );
 const { configIO } = require( "../module/config-io" );
 
+const EventEmitter = require('events');
+
+let cfg = new configIO( { file: "maruviewer.settings.json" } );
+cfg.addEventListener( "change", ( e ) => { console.log( e.details.old, e.details.new ); } );
+cfg.get().then( r => console.log( r ) );
+
 function tempMain () {
 	document.querySelector( ".search-panel .search-start" ).addEventListener( "click", ( e ) => {
 		SearchOnMaru( document.querySelector( ".search-panel .search-query" ).value );
 	} );
 	//SearchOnMaru( '양아치' );
-	let cfg = new configIO( "maruviewer.settings.json" );
-	cfg.addEventListener( "change", ( e ) => { console.log( e.details.old, e.details.new ); } );
+	/*
 	let cfg_RW = cfg.read( ( e ) => { console.log( "Read: ", e ); } )
-		.then( () => { cfg.set( { alpha: 1, beta: 2, gamma: 3 } ) } );
-	cfg_RW.then( () => { cfg.write( cfg.get(), ( e ) => { console.log( "Write:", e ); } ); });
+		.then( () => { cfg.set( { alpha: 1, beta: 2, gamma: 3 } ) } )
+		.then( () => { cfg.write( cfg.get(), ( e ) => { console.log( "Write:", e ); } ); });
+		*/
 }
 document.addEventListener( "DOMContentLoaded", tempMain );
