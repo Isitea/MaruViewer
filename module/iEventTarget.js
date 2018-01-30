@@ -10,7 +10,7 @@
 			( ( modEx ) => { moduleExporter = modEx.moduleExporter; } )( require( "./module-exporter" ) );
 			break;
 		case "AMD":
-			requirejs( [ './module-exporter' ], ( modEx ) => { moduleExporter = modEx; } );
+			requirejs( [ './module-exporter' ], ( modEx ) => { moduleExporter = modEx.moduleExporter; } );
 			break;
 		case undefined:
 			break;

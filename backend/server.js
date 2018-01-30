@@ -5,17 +5,22 @@ const url = require('url');
 const fs = require( 'fs' );
 const DEBUG = true;
 
+const { configIO } = require( "../module/config-io" );
+let cfg = new configIO( { file: "maruviewer.settings.json" } );
+cfg.addEventListener( "change", ( e ) => { console.log( e.details.old, e.details.new ); } );
+cfg.get().then( r => console.log( r ) );
 
-let win;
+let windows = [];
 function createWindow ( { uri: uri, protocol: protocol } = { uri: path.join(__dirname, '../frontend/viewer.html'), protocol: 'file:' } ) {
-	win = new BrowserWindow({width: 800, height: 600});
-	win.loadURL(url.format({
+	windows.push( new BrowserWindow({width: 800, height: 600}) );
+	let cWin = windows[windows.length - 1];
+	cWin.loadURL(url.format({
 		pathname: uri,
 		protocol: protocol,
 		slashes: true
 	}));
-	win.on('closed', () => {
-		win = null;
+	cWin.on('closed', () => {
+		windows.splice( windows.indexOf( cWin ), 1 );
 	});
 }
 
@@ -30,7 +35,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-	if (win === null) {
+	if (windows.length === 0) {
 		createWindow()
 	}
 });

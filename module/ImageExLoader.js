@@ -12,9 +12,9 @@
 			( ( modEx ) => { iEventTarget = modEx.iEventTarget; } )( require( "./iEventTarget" ) );
 			break;
 		case "AMD":
-			requirejs( [ './module-exporter' ], ( modEx ) => { moduleExporter = modEx; } );
-			requirejs( [ './ImageEx' ], ( modEx ) => { ImageEx = modEx; } );
-			requirejs( [ './iEventTarget' ], ( modEx ) => { iEventTarget = modEx; } );
+			requirejs( [ './module-exporter' ], ( modEx ) => { moduleExporter = modEx.moduleExporter; } );
+			requirejs( [ './ImageEx' ], ( modEx ) => { ImageEx = modEx.ImageEx; } );
+			requirejs( [ './iEventTarget' ], ( modEx ) => { iEventTarget = modEx.iEventTarget; } );
 			break;
 		case undefined:
 			ImageEx = window.ImageEx;

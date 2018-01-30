@@ -84,14 +84,14 @@ const { ImageExLoader } = require( "../module/ImageExLoader" );
 const { ImageEx } = require( "../module/ImageEx" );
 const { acrDOM } = require( "../module/acrDOM" );
 //const { iOO } = require( "../module/ObjectObserver" );
-const { configIO } = require( "../module/config-io" );
+//const { configIO } = require( "../module/config-io" );
 
 const EventEmitter = require('events');
-
+/*
 let cfg = new configIO( { file: "maruviewer.settings.json" } );
 cfg.addEventListener( "change", ( e ) => { console.log( e.details.old, e.details.new ); } );
 cfg.get().then( r => console.log( r ) );
-
+*/
 function tempMain () {
 	document.querySelector( ".search-panel .search-start" ).addEventListener( "click", ( e ) => {
 		SearchOnMaru( document.querySelector( ".search-panel .search-query" ).value );

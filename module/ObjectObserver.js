@@ -4,15 +4,17 @@
 	try { if ( require ) moduleLoader = "CommonJS"; } catch ( e ) {}
 	try { if ( requirejs ) moduleLoader = "AMD"; } catch ( e ) {}
 
-	let moduleExporter, iEventTarget;
+	let moduleExporter, iEventTarget, Event;
 	switch ( moduleLoader ) {
 		case "CommonJS":
 			( ( modEx ) => { moduleExporter = modEx.moduleExporter; } )( require( "./module-exporter" ) );
 			( ( modEx ) => { iEventTarget = modEx.iEventTarget; } )( require( "./iEventTarget" ) );
+			( ( modEx ) => { Event = modEx.iEvent; } )( require( "./iEvent" ) );
 			break;
 		case "AMD":
-			requirejs( [ './module-exporter' ], ( modEx ) => { moduleExporter = modEx; } );
-			requirejs( [ './iEventTarget' ], ( modEx ) => { iEventTarget = modEx; } );
+			requirejs( [ './module-exporter' ], ( modEx ) => { moduleExporter = modEx.moduleExporter; } );
+			requirejs( [ './iEventTarget' ], ( modEx ) => { iEventTarget = modEx.iEventTarget; } );
+			requirejs( [ './iEvent' ], ( modEx ) => { Event = modEx.iEvent; } );
 			break;
 		case undefined:
 			iEventTarget = window.iEventTarget;

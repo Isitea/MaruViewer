@@ -3,6 +3,7 @@
 ( () => {
 	const { moduleExporter } = require( "./module-exporter" );
 	const { iEventTarget } = require( "./iEventTarget" );
+	const { iEvent: Event } = require( "./iEvent" );
 	const { iOO } = require( "./ObjectObserver" );
 	const jsonfile = require( 'jsonfile' );
 
@@ -11,7 +12,7 @@
 			function init ( event ) {
 				switch ( event.details.type ) {
 					case "error":
-						switch ( err.errno ) {
+						switch ( event.details.info.errno ) {
 							case -4058:
 								this.addEventListener( "file-write", ( event ) => { if ( event.details.type === "success" ) this.read(); }, { once: true } );
 								this.write();
