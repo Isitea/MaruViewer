@@ -70,6 +70,9 @@
 									case "style":
 										oList[ oList.length - 1 ].style.cssText = value;
 										break;
+									case "addEventListener":
+										oList[ oList.length - 1 ][ key ]( value.type, value.listener, { once: true } );
+										break;
 									default:
 										oList[ oList.length - 1 ][ key ] = value;
 								}

@@ -10,7 +10,7 @@
 	<link rel="stylesheet" href="../library/pace-theme-corner-indicator.css" />
 </head>
 <body>
-	<div class="mode-selector" data-mode="search">
+	<div class="mode-selector" data-mode="select">
 		<div class="mode-trigger" data-mode="select">Menu</div>
 		<div class="modes">
 			<div class="separator">
@@ -24,15 +24,15 @@
 		</div>
 		<div class="search-panel">
 			<select class="search-select provider" title="provider">
-				<option class="maru" value="maru">Maru</option>
+				<option class="maru" value="maru" selected>Maru</option>
 			</select>
 			<input class="search-query" type="text" placeholder="What comic are you looking for?">
 			<button class="search-start"><i class="fa fa-search"></i></button>
 		</div>
 	</div>
 	<div class="query-result">
-
+		<div class="content"></div>
+		<div class="request-more">Read more</div>
 	</div>
-	<div class="request-more"></div>
 </body>
 </html>

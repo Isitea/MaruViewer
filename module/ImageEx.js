@@ -27,8 +27,7 @@
 							this.abort();
 							let error = new Event( "Error" );
 							Object.assign( error, { reason: { type: "Type error", detail: "Response MIME mismatch." }, ImageEx: SELF } );
-							SELF.src = undefined;
-							SELF.dispatchEvent( error );
+							if ( SELF.dispatchEvent( error ) ) SELF.src = "";
 						} else {
 							let event = new Event( "Progress" ), loader = { total: progress.total, loaded: progress.loaded };
 							Object.assign( event, { progress: loader, status: progress.type } );
@@ -72,7 +71,6 @@
 
 		load ( url ) {
 			if ( url === "" || url === undefined ) return false;
-
 			let xhr = this.requester;
 			xhr.open( "GET", url, true );
 			xhr.send();
