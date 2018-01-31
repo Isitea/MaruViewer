@@ -131,7 +131,7 @@ div.comic-information-box > div.text > div.first-wrap > div.second-wrap > div {
 }
 /* Comic information box | end /
 /* Search box | start */
-.search-panel {
+.search-panel, .filter-panel {
     /*max-width: 414px;*/
     width: 100%;
     border: 3px solid #00B4CC;
@@ -139,7 +139,7 @@ div.comic-information-box > div.text > div.first-wrap > div.second-wrap > div {
     outline: none;
     color: #9DBFAF;
 }
-.search-panel > * {
+.search-panel > *, .filter-panel > * {
     height: 20px;
     float: left;
 }
@@ -150,7 +150,11 @@ div.comic-information-box > div.text > div.first-wrap > div.second-wrap > div {
     width: calc( 100% - 20px );
     padding: 5px;
 }
-.search-panel .search-query:focus {
+.filter-panel .filter-query {
+    width: 100%;
+    padding: 5px;
+}
+.search-panel .search-query:focus, .filter-panel .filter-query:focus {
     color: #00B4CC;
 }
 .search-panel .search-start {
@@ -180,7 +184,8 @@ div.comic-information-box > div.text > div.first-wrap > div.second-wrap > div {
     line-height: 32px;
 }
 .mode-selector[data-mode] > div.modes,
-.mode-selector[data-mode] > div.search-panel,
+.mode-selector:not([data-mode=search]) > div.search-panel,
+.mode-selector[data-mode=select] > div.filter-panel,
 .mode-selector[data-mode=select] .mode-trigger {
     display: none;
 }

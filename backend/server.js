@@ -43,8 +43,9 @@ class WindowManager extends EventEmitter {
 
 	main () {
 		if ( this.windows.length > 0 ) return;
-		let window = new BrowserWindow( { width: 440, height: 715, show: false } );
+		let window = new BrowserWindow( { width: 440, height: 715, show: false	 } );
 		this.windows.push( window );
+		window.setMenu( null );
 		window.loadURL( url.format( {
 			pathname: path.join( __dirname, '../frontend/viewer.html'),
 			protocol: "file"
@@ -55,6 +56,7 @@ class WindowManager extends EventEmitter {
 	comic ( { uri } ) {
 		let window = new BrowserWindow( { width: 440, height: 680, show: false } );
 		this.windows.push( window );
+		window.setMenu( null );
 		window.loadURL( uri );
 		window.once( "ready-to-show",( SELF => () => { SELF.emit( "updateTray" ); window.show(); } )( this ) );
 		window.on( "closed", this.close );
@@ -62,6 +64,7 @@ class WindowManager extends EventEmitter {
 	episode ( { uri } ) {
 		let window = new BrowserWindow( { width: 440, height: 680, show: false } );
 		this.windows.push( window );
+		window.setMenu( null );
 		window.loadURL( uri );
 		window.once( "ready-to-show",( SELF => () => { SELF.emit( "updateTray" ); window.show(); } )( this ) );
 		window.on( "closed", this.close );

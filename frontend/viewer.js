@@ -26,7 +26,7 @@ cfg.get().then( r => console.log( r ) );
 */
 
 
-function tempMain () {
+function main () {
 	function initSearch () {
 		function SearchOnMaru ( title ) {
 			if ( document.body.classList.contains( "running" ) ) return false;
@@ -65,6 +65,10 @@ function tempMain () {
 		} );
 	}
 	function initModes () {
+		document.querySelector( ".filter-panel .filter-query" ).addEventListener( "keyup", ( event ) => {
+			document.querySelector( "#dynamic" )
+				.innerText = `.query-result .content div.comic-information-box:not([data-title${ ( event.target.value.length > 0 ? `*="${event.target.value}"` : "" ) }]) { display: none; }`;
+		} );
 		document.querySelector( ".mode-selector[data-mode] .mode-trigger" )
 			.addEventListener( "click", e => document.querySelector( ".mode-selector[data-mode]" ).dataset.mode = e.target.dataset.mode );
 		Array.prototype.slice
@@ -86,7 +90,6 @@ function tempMain () {
 		}
 		Ajax( `${origin}?c=${category}&sort=${type}&p=${page}`, "document",
 			( ev, DOCUMENT ) => {
-				console.log( type, page, category, origin );
 			let ComicList;
 			switch ( category ) {
 				case 26:
@@ -136,7 +139,7 @@ function tempMain () {
 		acr.append( {
 			div: {
 				className: "comic-information-box",
-				dataset: { link: info.link },
+				dataset: { link: info.link, title: info.title },
 				addEventListener: {
 					type: "click",
 					listener: ( event ) => {
@@ -231,4 +234,4 @@ function tempMain () {
 		.then( () => { cfg.write( cfg.get(), ( e ) => { console.log( "Write:", e ); } ); });
 		*/
 }
-document.addEventListener( "DOMContentLoaded", tempMain );
+document.addEventListener( "DOMContentLoaded", main );
