@@ -26,9 +26,8 @@ class WindowManager extends EventEmitter {
 			SELF.windows.forEach( window => window.show() );
 		};
 		this.toggleAllWindows = function toggleAllWindows () {
-			keyboard.ESC++;
 			setTimeout( () => keyboard.ESC--, 1000 );
-			if ( keyboard.ESC === 3 ) {
+			if ( ++keyboard.ESC === 3 ) {
 				if ( keyboard.hidden ) SELF.unhideAllWindows();
 				else SELF.hideAllWindows();
 				keyboard.hidden = !keyboard.hidden;
@@ -43,31 +42,38 @@ class WindowManager extends EventEmitter {
 
 	main () {
 		if ( this.windows.length > 0 ) return;
-		let window = new BrowserWindow( { width: 440, height: 715, show: false	 } );
+		let window = new BrowserWindow( { width: 440, height: 740, show: false, minWidth: 320, minHeight: 440 } );
 		this.windows.push( window );
 		window.setMenu( null );
+		window.once( "ready-to-show",( SELF => () => { SELF.emit( "updateTray" ); window.show(); } )( this ) );
+		window.on( "closed", this.close );
 		window.loadURL( url.format( {
 			pathname: path.join( __dirname, '../frontend/viewer.html'),
 			protocol: "file"
 		} ) );
-		window.once( "ready-to-show",( SELF => () => { SELF.emit( "updateTray" ); window.show(); } )( this ) );
-		window.on( "closed", this.close );
 	}
 	comic ( { uri } ) {
 		let window = new BrowserWindow( { width: 440, height: 680, show: false } );
 		this.windows.push( window );
 		window.setMenu( null );
-		window.loadURL( uri );
 		window.once( "ready-to-show",( SELF => () => { SELF.emit( "updateTray" ); window.show(); } )( this ) );
 		window.on( "closed", this.close );
+		window.loadURL( uri );
 	}
 	episode ( { uri } ) {
-		let window = new BrowserWindow( { width: 440, height: 680, show: false } );
+		let window = new BrowserWindow( { width: 600, height: 900, show: false } );
 		this.windows.push( window );
-		window.setMenu( null );
-		window.loadURL( uri );
-		window.once( "ready-to-show",( SELF => () => { SELF.emit( "updateTray" ); window.show(); } )( this ) );
+		window.loadURL( url.format( {
+			pathname: path.join( __dirname, '../frontend/episode.html'),
+			protocol: "file"
+		} ) );
+		window.once( "ready-to-show",( ( SELF, uri ) => () => {
+			SELF.emit( "updateTray" );
+			window.send( "open-link", { type: "open-link", link: uri } );
+			window.show();
+		} )( this, uri ) );
 		window.on( "closed", this.close );
+		window.setMenu( null );
 	}
 }
 function init() {
@@ -94,8 +100,11 @@ function init() {
 		if ( DEBUG ) window.webContents.openDevTools( { mode: "detach" } );
 	} );
 
-	ipcMain.on( "open-comic", ( info, event ) => {
-		Views.comic( { uri: event.details.link } );
+	ipcMain.on( "open-comic", ( type, event ) => {
+		//Views.comic( { uri: event.details.link } );
+	} );
+	ipcMain.on( "open-episode", ( type, event ) => {
+		Views.episode( { uri: event.details.link } );
 	} );
 }
 

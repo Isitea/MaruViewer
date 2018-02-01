@@ -16,7 +16,7 @@ http://marumaru.in/?c=40&sort=subject&p=PAGE
 만화
 http://marumaru.in/b/manga/242089
 .viewbox #vContent
-    TITLE: .viewbox .subject -> .innerText
+    TITLE: .subject -> .innerText
     LINK:[All] #vContent a[href*=wasabi] -> .href
     IMAGE: #vContent img -> .src
     Other LINK:[All] #vContent .picbox
@@ -33,11 +33,12 @@ http://marumaru.in/?c=26&p=PAGE
 
 최신
 http://marumaru.in/b/mangaup/271711
-.viewbox #vContent
-    TITLE: .viewbox .subject -> .innerText
+#vContent
+    TITLE: #vContent a[href*=wasabi] -> .innerText
+    TITLE: .subject -> .innerText -> .innerText
     LINK: #vContent a[href*=wasabi] -> .href
     IMAGE: #vContent img -> .src
-    Previous LINK: .ctt_box a[href*=manga] -> .href
+    Previous LINK: #vContent a[href*=maru]:not([href*=tag]):not([href*=score]):not([href*=request]) -> .href
 
 Daum - JSON request
 http://webtoon.daum.net/data/pc/webtoon/viewer/46971#data/webtoonEpisodes/13

@@ -71,7 +71,9 @@
 										oList[ oList.length - 1 ].style.cssText = value;
 										break;
 									case "addEventListener":
-										oList[ oList.length - 1 ][ key ]( value.type, value.listener, { once: true } );
+										for ( event of value ) {
+											oList[ oList.length - 1 ][ key ]( event.type, event.listener, event.option || {} );
+										}
 										break;
 									default:
 										oList[ oList.length - 1 ][ key ] = value;

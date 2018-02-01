@@ -7,7 +7,6 @@
 
 html, body {
     overflow: hidden;
-    overflow-y: auto;
     width: 100vw;
     height: 100vh;
     background: rgba( 0, 0, 0, 0.75 );
@@ -233,12 +232,16 @@ div.comic-information-box > div.text > div.first-wrap > div.second-wrap > div {
     z-index: 1;
     position: absolute;
     top: 32px;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
 }
 .mode-selector[data-mode=search] ~ .query-result {
     top: 64px;
 }
 .query-result .content {
-    margin-bottom: 32px;
+    margin: 32px 0 32px 0;
+    overflow: hidden;
 }
 .query-result .request-more {
     width: 100%;
@@ -254,4 +257,30 @@ div.comic-information-box > div.text > div.first-wrap > div.second-wrap > div {
 .query-result[data-remain=true] .request-more {
     display: block;
 }
+.query-result .list-shown.exist {
+    display: block !important;
+}
+.query-result .list-shown {
+    height: 100%;
+    width: 32px;
+    top: 0;
+    position: fixed;
+    line-height: 100vh;
+    text-align: center;
+    display: none;
+    color: whitesmoke;
+    background: rgba( 128, 128, 128, 0.5 );
+    z-index: 3;
+}
+.query-result .list-shown.prev {
+    left: 0;
+}
+.query-result .list-shown.next {
+    right: 0;
+}
 /* Request more | end */
+/* Filtering | start */
+.filtered-hidden {
+    display: none;
+}
+/* Filtering | end */
