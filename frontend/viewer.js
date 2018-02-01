@@ -7,8 +7,14 @@ function Ajax ( url, type = "document", response ) {
 	xhr.addEventListener( "load", ( ev ) => {
 		response( ev, xhr.response );
 	} );
+	xhr.addEventListener( "error", e => {
+		console.dir( e );
+	} );
 
-	xhr.send();
+	try { xhr.send(); }
+	catch ( e ) {
+		console.dir( e );
+	}
 }
 
 //Require must before using.
@@ -231,7 +237,7 @@ function main () {
 				dataset: { link: info.link, title: info.title },
 				addEventListener: [ {
 					type: "click",
-					listener: ( event ) => {
+					listener: event => {
 						event.path.forEach( ( item ) => {
 							if ( item.classList && item.classList.contains( "comic-information-box" ) ) {
 								getComicInformation( item.dataset.link, info.origin );
@@ -244,13 +250,14 @@ function main () {
 						imgex: {
 							className: "graphic",
 							url: info.image,
-							addEventListener: {
+							addEventListener: [ {
 								type: "Error",
-								listener: [ event => {
+								listener: event => {
 									event.preventDefault();
 									event.ImageEx.url = event.ImageEx.src.replace( "quickimage/", "quickimage/thumb-" );
-								} ]
-							}
+								},
+								option: { once: true }
+							} ]
 						}
 					},
 					{

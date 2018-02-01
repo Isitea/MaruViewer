@@ -21,7 +21,7 @@ function Ajax ( url, type = "document", response ) {
 	xhr.send();
 }
 
-function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE ) {
+function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 	function Constructor ( contentBox, iManager, config ) {
 		function History () {
 			let _SELF = this, vHack = dom.create( { "div": { "className": "hack-box" } } );
@@ -342,7 +342,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE ) {
 		function DOMParser ( item, response ) {
 			if ( item.dataset.signature && item.dataset.key ) {
 				let oReq = new XMLHttpRequest();
-				oReq.open( "GET", location.href.replace( /archives/ig, 'assets' ) + '/1.json?signature=' + encodeURIComponent( item.dataset.signature ) + '&key=' + encodeURIComponent( item.dataset.key ), true );
+				oReq.open( "GET", ORIGINAL_URI.replace( /archives/ig, 'assets' ) + '/1.json?signature=' + encodeURIComponent( item.dataset.signature ) + '&key=' + encodeURIComponent( item.dataset.key ), true );
 				oReq.responseType = "json";
 				oReq.onload = ( oEvent ) => {
 					response( oReq.response.sources );
@@ -363,8 +363,49 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE ) {
 		if ( DOCUMENT.querySelectorAll( ".pass-box" ).length ) {
 			DOCUMENT.querySelectorAll( ".pass-box [name=pass]" )[ 0 ].value = "qndxkr";
 			if ( DOCUMENT.querySelectorAll( ".g-recaptcha[data-size=invisible]" ) || DOCUMENT.querySelectorAll( ".g-recaptcha" ) === null ) {
+				dom.append( {
+					iframe: {
+						src: ORIGINAL_URI,
+						style: "width: 384px; height: 512px; position: absolute; top: 50%; left: 50%; transform: translate( -50%, -50% ); display: none;",
+						addEventListener: [ {
+							type: "load",
+							listener: e => {
+								console.log( e.path[0] );
+								if( ORIGINAL_URI !== e.path[0].contentWindow.location.href ) {
+									dom.remove( e.path[0] );
+									openLink( e.path[0].contentWindow.location.href );
+								}
+							}
+						}, {
+							type: "load",
+							listener: ( e ) => {
+								console.log( e.path[0] );
+								e.stopImmediatePropagation();
+								let _w = e.path[0].contentWindow, _d = _w.document;
+								_d.querySelector( ".pass-box [name=pass]" ).value = "qndxkr";
+								_d.querySelector( ".pass-box" ).style
+									.cssText = 'width: 100vw, height: 100vh; position: fixed; top: 0; left: 0; z-index: 999999999; background: black;';
+								/*
+								let _b = _d.createElement( "body" );
+								_b.appendChild( _d.querySelector( "form" ) );
+								_d.documentElement.replaceChild( _b, _d.body );
+								*/
+								e.path[0].style.display = "block";
+								setTimeout( () => _w.grecaptcha.execute(), 250 );
+							},
+							option: { once: true }
+						} ]
+					}
+				}, document.body );
+				//dom.remove( DOCUMENT.querySelectorAll( "iframe:not([src*=google])") );
+				//document.body.innerHTML = DOCUMENT.querySelector( ".pass-box" ).outerHTML;
 				//DOCUMENT.querySelectorAll( ".pass-box form" )[ 0 ].submit();
-				dom.append( { "script": { "defer": true, "innerHTML": "grecaptcha.execute();" } }, DOCUMENT.body );
+				//dom.append( { "script": { "defer": true, "innerHTML": "grecaptcha.execute();" } }, DOCUMENT.body );
+				//document.body.parentNode.replaceChild( DOCUMENT.body, document.body );
+				//document.replaceChild( DOCUMENT.documentElement, document.documentElement );
+				//setTimeout( () => { grecaptcha.execute(); }, 10 );
+
+				//ipcRenderer.send( "reload-episode", { type: "reload-episode", link: ORIGINAL_URI } );
 			} else {
 
 			}
@@ -387,7 +428,7 @@ function init () {
 			( event, DOCUMENT ) => {
 				new Wasabisyrup( DOCUMENT, event.target.responseURL.replace( /^(.+?\/\/.+?)\/.+$/gi, "$1" ), ( DOC ) => {
 					document.body.parentNode.replaceChild( DOC.body, document.body )
-				} );
+				}, event.target.responseURL );
 			} );
 	} );
 }
@@ -395,9 +436,10 @@ function openLink ( uri ) {
 	if ( !uri.match( /#$/g ) ) {
 		Ajax( uri, "document",
 			( event, DOCUMENT ) => {
+				console.log( event );
 				new Wasabisyrup( DOCUMENT, uri.replace( /^(.+?\/\/.+?)\/.+$/gi, "$1" ), ( DOC ) => {
 					document.body.parentNode.replaceChild( DOC.body, document.body );
-				} );
+				}, event.target.responseURL );
 			} );
 	}
 }
