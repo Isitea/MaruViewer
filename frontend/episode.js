@@ -450,8 +450,7 @@ class ComicInfomation {
 			} );
 		}
 
-		console.log( details );
-
+		document.title = "Same authors";
 		let acr = new acrDOM();
 		let controller = acr.create( {
 			'div': {
@@ -535,6 +534,7 @@ class ComicInfomation {
 }
 function openComic ( type, details ) {
 	acrDOM.remove( document.querySelectorAll( "body > *" ) );
+	console.log( details );
 	new ComicInfomation( details );
 }
 function openEpisode ( uri ) {

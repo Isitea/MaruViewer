@@ -330,9 +330,6 @@ function main () {
 		parseComicInfo( `${origin}b/manga/${link.replace( /.+?(\d+)$/, "$1" )}` );
 	}
 	function parseComicInfo ( url ) {
-		if ( document.body.classList.contains( "running" ) ) return false;
-		else { document.body.classList.add( "running" ); }
-
 		Ajax( url, "document",
 			( ev, DOCUMENT ) => {
 				document.body.classList.remove( "running" );
@@ -342,10 +339,13 @@ function main () {
 					link: [],
 					others: []
 				};
-				let links = DOCUMENT.querySelectorAll( "#vContent a[href*=marumaru]:not([href*=tag]):not([href*=score]):not([href*=request])" );
 				for ( let link of DOCUMENT.querySelectorAll( "#vContent a[href*=http]:not([href*=marumaru])" ) ) {
 					info.link.push( { title: link.innerText, link: link.href } );
 				}
+				let links = [];
+				for ( const link of DOCUMENT.querySelectorAll( "#vContent a[href*=marumaru]:not([href*=tag]):not([href*=score]):not([href*=request])" ) )
+					if ( link.innerText.replace( /^\s+|\s+$/g, "" ).length > 0 ) links.push( link );
+				console.log( links );
 				if ( links.length === 1 ) {
 					info.others.push( {
 						info: "Previous episodes",
@@ -361,9 +361,12 @@ function main () {
 						} );
 					}
 				}
-				//console.log( info );
-				ipcRenderer.send( "open-comic", { type: "open-comic", details: info } );
-				if ( info.link.length === 1 ) ipcRenderer.send( "open-episode", { type: "open-episode", details: { link: info.link[0].link } } );
+				console.log( info );
+				if ( links.length === 1 ) {
+					ipcRenderer.send( "open-episode", { type: "open-episode", details: { link: info.link[0].link } } );
+					parseComicInfo( info.others[0].link );
+				}
+				else ipcRenderer.send( "open-comic", { type: "open-comic", details: info } );
 			} );
 	}
 

@@ -171,6 +171,7 @@ body.Hide .controller {
     height: 50%;
     float: left;
     position: relative;
+    padding-top: 3px;
 }
 
 .functionBox .Download {
