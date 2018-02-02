@@ -20,12 +20,22 @@
 	class acrDOM {
 		constructor ( node ) {
 			if ( node instanceof HTMLElement ) this.node = node;
-			else if ( node instanceof Object ) this.node = this.append( node, document.body );
+			else if ( node instanceof Object ) {
+				this.node = this.create( node );
+				this.append( this.node, document.body );
+			}
 			else this.node = document.body;
 
 			return this;
 		}
 
+		change ( Child ) {
+			let node = this.create( Child );
+			this.append( node );
+			this.node = node;
+
+			return this;
+		}
 		create ( List ) { return this.constructor.create.call( this.constructor, List ); }
 		append ( Child, Parent = this.node ) {
 			let result = this.constructor.append.call( this.constructor, Child, Parent );
@@ -69,6 +79,10 @@
 										break;
 									case "style":
 										oList[ oList.length - 1 ].style.cssText = value;
+										break;
+									case "enabled":
+									case "disabled":
+										oList[ oList.length - 1 ].setAttribute( key, true );
 										break;
 									case "addEventListener":
 										for ( event of value ) {

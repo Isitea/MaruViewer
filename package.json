@@ -3,8 +3,9 @@
   "version": "0.0.1",
   "main": "backend/server.js",
   "dependencies": {
-    "@egjs/infinitegrid": "^3.1.4",
-    "jsonfile": "^4.0.0"
+    "jsonfile": "^4.0.0",
+    "jszip": "^3.1.5",
+    "mkpath": "^1.0.0"
   },
   "devDependencies": {},
   "repository": {

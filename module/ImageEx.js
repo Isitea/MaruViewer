@@ -32,7 +32,10 @@
 							let event = new Event( "Progress" ), loader = { total: progress.total, loaded: progress.loaded };
 							Object.assign( event, { progress: loader, status: progress.type } );
 							Object.assign( SELF, { loader: loader } );
-							if ( progress.total !== progress.loaded || progress.type === "load" ) SELF.dispatchEvent( event );
+							if ( progress.total !== progress.loaded || progress.type === "load" ) {
+								if ( progress.type === "load" ) SELF.dataset.mime = SELF.requester.response.type;
+								SELF.dispatchEvent( event );
+							}
 						}
 						break;
 					case "error":

@@ -22,12 +22,12 @@ function Ajax ( url, type = "document", response ) {
 }
 
 function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
-	function Constructor ( contentBox, iManager, config ) {
+	function Constructor ( contentBox, iManager ) {
 		function History () {
 			let _SELF = this, vHack = dom.create( { "div": { "className": "hack-box" } } );
 
 			this.getHistory = () => {
-				DOCUMENT.body.removeEventListener( "mouseover", _SELF.getHistory );
+				BODY.removeEventListener( "mouseover", _SELF.getHistory );
 				ipcRenderer.once( "history", _SELF.showHistory );
 				new Promise( ( resolve, reject ) => { setTimeout( () => { resolve(); }, 0 ); } ).then( () => { ipcRenderer.send( "capture" ); } )
 			};
@@ -35,7 +35,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 				if ( message.visited === undefined ) return;
 				let visited = message.visited;
 				dom.remove( vHack );
-				let list = DOCUMENT.body.querySelectorAll( '.dropdown a' );
+				let list = BODY.querySelectorAll( '.dropdown a' );
 				visited.forEach( ( item ) => {
 					list[item].classList.add( "visited" );
 				} );
@@ -54,7 +54,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 				}, vHack );
 			};
 			this.listen = () => {
-				DOCUMENT.body.addEventListener( "mouseover", _SELF.getHistory );
+				BODY.addEventListener( "mouseover", _SELF.getHistory );
 			};
 			this.hackBox = () => { return vHack };
 			this.cancel = () => {
@@ -64,7 +64,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 
 		function ProgressBar ( Complete = () => {} ) {
 			let Bar, complete = dom.create( { "div": { "className": "complete" } } ), remain = dom.create( { "div": { "className": "remain" } } );
-			Bar = dom.append( [ complete, remain ], dom.create( { "div": { "className": "progress" } } ) );
+			Bar = dom.append( [ complete, remain ], { "div": { "className": "progress" } } );
 
 			this.show = ( ratio ) => {
 				complete.style.width = ratio + "%";
@@ -104,7 +104,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 						{ "span": { "id": "totalPage", "innerText": iManager.counts() } }
 					]
 				}
-			}, DOCUMENT.body );
+			}, BODY );
 
 			_SELF.showPage();
 		}
@@ -119,29 +119,29 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 					switch ( e.code ) {
 						case "ArrowUp":
 							e.preventDefault();
-							DOCUMENT.body.classList.add( "FitToWindow", "Hide" );
+							BODY.classList.add( "FitToWindow", "Hide" );
 							Pager.setPage( --page );
 							break;
 						case "ArrowDown":
 							e.preventDefault();
-							DOCUMENT.body.classList.add( "FitToWindow", "Hide" );
+							BODY.classList.add( "FitToWindow", "Hide" );
 							Pager.setPage( ++page );
 							break;
 						case "ArrowLeft":
-							DOCUMENT.body.querySelector( ".controller .backward" ).click();
+							BODY.querySelector( ".controller .backward" ).click();
 							break;
 						case "ArrowRight":
-							DOCUMENT.body.querySelector( ".controller .forward" ).click();
+							BODY.querySelector( ".controller .forward" ).click();
 							break;
 						case "KeyD":
 							_SELF.download();
 							break;
 						case "KeyF":
-							DOCUMENT.body.classList.toggle( "FitToWindow" );
+							BODY.classList.toggle( "FitToWindow" );
 							Pager.setPage( page );
 							break;
 						case "KeyH":
-							DOCUMENT.body.classList.toggle( "Hide" );
+							BODY.classList.toggle( "Hide" );
 							Pager.setPage( page );
 							break;
 					}
@@ -161,20 +161,20 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 				}
 
 				this.EditModeStart = () => {
-					DOCUMENT.querySelector( ".functionBox .EditProp" ).classList.add( "EditMode" );
-					DOCUMENT.querySelector( ".dropdown .dropbtn .title" ).removeAttribute( "disabled" );
-					DOCUMENT.querySelector( ".dropdown .dropbtn .episode" ).removeAttribute( "disabled" );
-					DOCUMENT.querySelector( ".dropdown .dropbtn .title" ).addEventListener( "focusout", ApplyProp );
-					DOCUMENT.querySelector( ".dropdown .dropbtn .episode" ).addEventListener( "focusout", ApplyProp );
-					config.onChanges( { "KeyControl": { newValue: false } }, "local" );
+					document.querySelector( ".functionBox .EditProp" ).setAttribute( "disabled", true );
+					document.querySelector( ".functionBox .EditApply" ).removeAttribute( "disabled" );
+					document.querySelector( ".dropdown .dropbtn .title" ).removeAttribute( "disabled" );
+					document.querySelector( ".dropdown .dropbtn .episode" ).removeAttribute( "disabled" );
+					document.querySelector( ".dropdown .dropbtn .title" ).addEventListener( "focusout", ApplyProp );
+					document.querySelector( ".dropdown .dropbtn .episode" ).addEventListener( "focusout", ApplyProp );
 				};
 				this.EditModeEnd = () => {
-					DOCUMENT.querySelector( ".functionBox .EditProp" ).classList.remove( "EditMode" );
-					DOCUMENT.querySelector( ".dropdown .dropbtn .title" ).setAttribute( "disabled", true );
-					DOCUMENT.querySelector( ".dropdown .dropbtn .episode" ).setAttribute( "disabled", true );
-					DOCUMENT.querySelector( ".dropdown .dropbtn .title" ).removeEventListener( "focusout", ApplyProp );
-					DOCUMENT.querySelector( ".dropdown .dropbtn .episode" ).removeEventListener( "focusout", ApplyProp );
-					config.load();
+					document.querySelector( ".functionBox .EditApply" ).setAttribute( "disabled", true );
+					document.querySelector( ".functionBox .EditProp" ).removeAttribute( "disabled" );
+					document.querySelector( ".dropdown .dropbtn .title" ).setAttribute( "disabled", true );
+					document.querySelector( ".dropdown .dropbtn .episode" ).setAttribute( "disabled", true );
+					document.querySelector( ".dropdown .dropbtn .title" ).removeEventListener( "focusout", ApplyProp );
+					document.querySelector( ".dropdown .dropbtn .episode" ).removeEventListener( "focusout", ApplyProp );
 				};
 			}
 
@@ -183,12 +183,13 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 			this.attach = ( type ) => {
 				switch ( type ) {
 					case "keyboard":
-						DOCUMENT.addEventListener( "keydown", Keyboard );
+						BODY.addEventListener( "keydown", Keyboard );
 						break;
 					case "mouse":
-						DOCUMENT.querySelector( ".functionBox .Download" ).addEventListener( "click", _SELF.download );
-						DOCUMENT.querySelector( ".functionBox .EditProp" ).addEventListener( "click", mouse.EditModeStart );
-						DOCUMENT.querySelector( ".functionBox .EditApply" ).addEventListener( "click", mouse.EditModeEnd );
+						BODY.querySelector( ".functionBox .Download" ).addEventListener( "click", _SELF.download );
+						BODY.querySelector( ".functionBox .Automatic" ).addEventListener( "click", e => document.body.dataset.automatic = Number( !Number( document.body.dataset.automatic ) ) );
+						BODY.querySelector( ".functionBox .EditProp" ).addEventListener( "click", mouse.EditModeStart );
+						BODY.querySelector( ".functionBox .EditApply" ).addEventListener( "click", mouse.EditModeEnd );
 						break;
 					default:
 				}
@@ -196,30 +197,25 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 			this.detach = ( type ) => {
 				switch ( type ) {
 					case "keyboard":
-						DOCUMENT.removeEventListener( "keydown", Keyboard );
+						BODY.removeEventListener( "keydown", Keyboard );
 						break;
 					case "mouse":
-						dom.remove( DOCUMENT.querySelector( ".functionBox" ) );
+						dom.remove( BODY.querySelector( ".functionBox" ) );
 						break;
 					default:
 				}
 			};
 			this.download = () => {
-				if ( DOCUMENT.querySelector( ".functionBox" ) === null ) return;
+				if ( document.querySelector( ".functionBox" ) === null ) return;
 				Progress.Element().classList.add( "downloading" );
 				_SELF.detach( "mouse" );
-				iManager.download( ( config.read( 'AutoNext' ) ? DOCUMENT.querySelector( 'a.forward' ) : undefined ) );
-			};
-			this.onChanges = ( config ) => {
-				if ( config.read( "KeyControl" ) )  _SELF.attach( "keyboard" );
-				else _SELF.detach( "keyboard" );
+				iManager.download( ( !!Number( document.body.dataset.automatic ) ? document.querySelector( 'a.forward' ) : undefined ) );
 			};
 			this.onComplete = () => {
-				if ( config.read( 'AutoDownload' ) ) _SELF.download();
+				if ( !!Number( document.body.dataset.automatic ) ) _SELF.download();
 			};
 		}
-
-		let sel = DOCUMENT.querySelectorAll( ".list-articles" )[ 0 ].querySelectorAll( "option" );
+		let sel = BODY.querySelectorAll( ".list-articles" )[ 0 ].querySelectorAll( "option" );
 		let Ctrl = new Controller(), Progress = new ProgressBar(), Pager;
 		Progress.setComplete( Ctrl.onComplete );
 		let controller = dom.create( {
@@ -233,7 +229,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 							listener: ( event ) => {
 								event.preventDefault();
 								event.stopImmediatePropagation();
-								openLink( event.target.href );
+								openEpisode( event.target.href );
 							},
 							option: { once: true }
 						}, {
@@ -245,9 +241,10 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 						"div": {
 							"className": "functionBox",
 							"_CHILD": [
-								{ "div": { "className": "Download", "_CHILD": { "img": { "src": "" } } } },
-								{ "div": { "className": "EditProp", "_CHILD": { "img": { "src": "" } } } },
-								{ "div": { "className": "EditApply", "_CHILD": { "img": { "src": "" } } } }
+								{ "div": { "className": "Download fas fa-download" } },
+								{ "div": { "className": "Automatic fas fa-truck" } },
+								{ "div": { "className": "EditProp fas fa-edit" } },
+								{ "div": { "className": "EditApply fas fa-check", "disabled": true } }
 							]
 						}
 					},
@@ -268,7 +265,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 							listener: ( event ) => {
 								event.preventDefault();
 								event.stopImmediatePropagation();
-								openLink( event.target.href );
+								openEpisode( event.target.href );
 							},
 							option: { once: true }
 						}, {
@@ -279,7 +276,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 				]
 			}
 		} );
-		let vHistory = new History();
+		//let vHistory = new History();
 		let dropdown = controller.querySelector( '.dropdown-content' );
 		for ( let i = 0; i < sel.length; i++ ) {
 			dom.append( {
@@ -293,7 +290,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 						listener: ( event ) => {
 							event.preventDefault();
 							event.stopImmediatePropagation();
-							openLink( event.target.href );
+							openEpisode( event.target.href );
 						},
 						option: { once: true }
 					}, {
@@ -302,7 +299,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 					} ]
 				}
 			}, dropdown );
-			vHistory.add( ORIGIN + "/archives/" + sel[ i ].value );
+			//vHistory.add( ORIGIN + "/archives/" + sel[ i ].value );
 			if ( sel[ i ].selected ) {
 				controller.querySelector( ".backward" ).href = ( sel[ i - 1 ] ? ORIGIN + "/archives/" + sel[ i - 1 ].value : "#" );
 				controller.querySelector( ".forward" ).href = ( sel[ i + 1 ] ? ORIGIN + "/archives/" + sel[ i + 1 ].value : "#" );
@@ -317,11 +314,11 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 		iManager.setResponse( Progress.show );
 		iManager.place( contentBox );
 
-		DOCUMENT.documentElement.replaceChild( dom.append( [ vHistory.hackBox(), controller, contentBox ], { "body": {} } ), DOCUMENT.body );
+		dom.remove( DOCUMENT.querySelectorAll( "body > *" ) );
+		//dom.append( [ vHistory.hackBox(), controller, contentBox ], BODY );
+		dom.append( [ controller, contentBox ], BODY );
 		Pager = new Positioner();
 		Ctrl.attach( "mouse" );
-
-		config.setResponse( Ctrl.onChanges ).onChanges( {}, "local" );
 
 		/* History box
 		if ( location.origin === ORIGIN ) {
@@ -331,14 +328,14 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 			vHistory.cancel();
 		}
 		*/
-		setTimeout( function () {
-			DOCUMENT.body.querySelector( ".controller .dropdown .selected" ).scrollIntoView( true );
-			DOCUMENT.body.querySelector( ".controller .dropdown .dropdown-content" ).style.cssText = "";
-			if ( DOCUMENT_RESPONSE ) DOCUMENT_RESPONSE( DOCUMENT );
-		}, 100 );
+		document.body.addEventListener( "mouseover", e => {
+			controller.querySelector( ".dropdown .selected" ).scrollIntoView( true );
+			controller.querySelector( ".dropdown .dropdown-content" ).style.cssText = "";
+		}, { once: true } );
+		DOCUMENT_RESPONSE( DOCUMENT );
 	}
 
-	function cleanUp ( config ) {
+	function cleanUp () {
 		function DOMParser ( item, response ) {
 			if ( item.dataset.signature && item.dataset.key ) {
 				let oReq = new XMLHttpRequest();
@@ -360,88 +357,195 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 			}
 		}
 
-		if ( DOCUMENT.querySelectorAll( ".pass-box" ).length ) {
-			DOCUMENT.querySelectorAll( ".pass-box [name=pass]" )[ 0 ].value = "qndxkr";
-			if ( DOCUMENT.querySelectorAll( ".g-recaptcha[data-size=invisible]" ) || DOCUMENT.querySelectorAll( ".g-recaptcha" ) === null ) {
+		if ( BODY.querySelectorAll( ".pass-box" ).length ) {
+			BODY.querySelectorAll( ".pass-box [name=pass]" )[ 0 ].value = "qndxkr";
+			if ( BODY.querySelectorAll( ".g-recaptcha[data-size=invisible]" ) || BODY.querySelectorAll( ".g-recaptcha" ) === null ) {
 				dom.append( {
 					iframe: {
 						src: ORIGINAL_URI,
-						style: "width: 384px; height: 512px; position: absolute; top: 50%; left: 50%; transform: translate( -50%, -50% ); display: none;",
 						addEventListener: [ {
 							type: "load",
 							listener: e => {
 								console.log( e.path[0] );
-								if( ORIGINAL_URI !== e.path[0].contentWindow.location.href ) {
+								let uri = e.path[0].contentWindow.location.href;
+								if( ORIGINAL_URI !== uri ) {
 									dom.remove( e.path[0] );
-									openLink( e.path[0].contentWindow.location.href );
+									openEpisode( uri );
 								}
 							}
 						}, {
 							type: "load",
 							listener: ( e ) => {
-								console.log( e.path[0] );
 								e.stopImmediatePropagation();
 								let _w = e.path[0].contentWindow, _d = _w.document;
 								_d.querySelector( ".pass-box [name=pass]" ).value = "qndxkr";
+								_d.body.style.overflow = "hidden";
 								_d.querySelector( ".pass-box" ).style
 									.cssText = 'width: 100vw, height: 100vh; position: fixed; top: 0; left: 0; z-index: 999999999; background: black;';
-								/*
-								let _b = _d.createElement( "body" );
-								_b.appendChild( _d.querySelector( "form" ) );
-								_d.documentElement.replaceChild( _b, _d.body );
-								*/
-								e.path[0].style.display = "block";
+								e.path[0].style.opacity = "1";
 								setTimeout( () => _w.grecaptcha.execute(), 250 );
 							},
 							option: { once: true }
 						} ]
 					}
 				}, document.body );
-				//dom.remove( DOCUMENT.querySelectorAll( "iframe:not([src*=google])") );
-				//document.body.innerHTML = DOCUMENT.querySelector( ".pass-box" ).outerHTML;
-				//DOCUMENT.querySelectorAll( ".pass-box form" )[ 0 ].submit();
-				//dom.append( { "script": { "defer": true, "innerHTML": "grecaptcha.execute();" } }, DOCUMENT.body );
-				//document.body.parentNode.replaceChild( DOCUMENT.body, document.body );
-				//document.replaceChild( DOCUMENT.documentElement, document.documentElement );
-				//setTimeout( () => { grecaptcha.execute(); }, 10 );
-
-				//ipcRenderer.send( "reload-episode", { type: "reload-episode", link: ORIGINAL_URI } );
-			} else {
-
 			}
 		} else {
-			DOMParser( DOCUMENT.querySelector( ".gallery-template" ), ( list ) => {
+			DOMParser( BODY.querySelector( ".gallery-template" ), ( list ) => {
 				list.forEach( ( src ) => { iManager.load( ORIGIN + src ); } );
-				new Constructor( dom.create( { "div": { "className": "contentBox" } } ), iManager, config );
+				new Constructor( dom.create( { "div": { "className": "contentBox" } } ), iManager );
 			} );
 		}
 	}
 
-	let dom = new acrDOM();
-	let iManager = new contentManager( DOCUMENT, DOCUMENT.title.match( /\s*(.+)\s+\|\s/i )[ 1 ] );
-	new configManager( cleanUp );
+	const dom = new acrDOM(), BODY = DOCUMENT.body;
+	const iManager = new contentManager( DOCUMENT.title.match( /\s*(.+)\s+\|\s/i )[ 1 ], ORIGINAL_URI );
+	cleanUp()
 }
 
 function init () {
-	ipcRenderer.on( "open-link", ( type, event ) => {
-		Ajax( event.link, "document",
-			( event, DOCUMENT ) => {
-				new Wasabisyrup( DOCUMENT, event.target.responseURL.replace( /^(.+?\/\/.+?)\/.+$/gi, "$1" ), ( DOC ) => {
-					document.body.parentNode.replaceChild( DOC.body, document.body )
-				}, event.target.responseURL );
-			} );
+	document.body.dataset.automatic = 0;
+	ipcRenderer.on( "open-episode-link", ( type, details ) => {
+		openEpisode( details.link );
 	} );
+	ipcRenderer.on( "open-comic-link", openComic );
 }
-function openLink ( uri ) {
+class ComicInfomation {
+	constructor ( { details } ) {
+		function parseComicInfo ( url ) {
+			if ( document.body.classList.contains( "running" ) ) return false;
+			else { document.body.classList.add( "running" ); }
+
+			return new Promise( ( resolve, reject ) => {
+				Ajax( url, "document",
+					( ev, DOCUMENT ) => {
+						document.body.classList.remove( "running" );
+						let info = {
+							title: DOCUMENT.querySelector( ".subject" ).innerText.replace( /^\s+|\s+$/g, "" ),
+							image: DOCUMENT.querySelector( "#vContent img" ).src,
+							link: [],
+							others: []
+						};
+						let links = DOCUMENT.querySelectorAll( "#vContent a[href*=marumaru]:not([href*=tag]):not([href*=score]):not([href*=request])" );
+						for ( let link of DOCUMENT.querySelectorAll( "#vContent a[href*=http]:not([href*=marumaru])" ) ) {
+							info.link.push( { title: link.innerText, link: link.href } );
+						}
+						if ( links.length === 1 ) {
+							info.others.push( {
+								info: "Previous episodes",
+								image: info.image,
+								link: links[0].href
+							} );
+						} else {
+							for ( let link of DOCUMENT.querySelectorAll( "#vContent .picbox" ) ) {
+								info.others.push( {
+									title: link.querySelector( ".sbjx" ).innerText.replace( /^\s+|\s+$/g, "" ),
+									link: link.querySelector( ".sbjx a[href*=manga]" ).href,
+									image: link.querySelector( ".pic img" ).src,
+								} );
+							}
+						}
+						resolve( info );
+					} );
+			} );
+		}
+
+		console.log( details );
+
+		let acr = new acrDOM();
+		let controller = acr.create( {
+			'div': {
+				'className': 'controller',
+				"_CHILD": [
+					{ "a": { "className": "backward fas fa-angle-left" } },
+					{
+						"div": {
+							"className": "dropdown",
+							"_CHILD": [
+								{ "div": { "className": "dropbtn" } },
+								{ "div": { "className": "dropdown-content" } }
+							]
+						}
+					},
+					{ "a": { "className": "forward fas fa-angle-right" } }
+				]
+			}
+		} );
+
+		let dropdown = controller.querySelector( '.dropdown-content' );
+		for ( const info of details.link ) {
+			acr.append( {
+				"a": {
+					"href": "#",
+					"innerText": info.title,
+					addEventListener: [ {
+						type: "click",
+						listener: ( link => event => {
+							event.preventDefault();
+							event.stopImmediatePropagation();
+							openEpisode( link );
+						} ) ( info.link ),
+						option: { once: true }
+					}, {
+						type: "click",
+						listener: event => event.preventDefault()
+					} ]
+				}
+			}, dropdown );
+		}
+		controller.querySelector( ".dropdown .dropdown-content" ).style.cssText = "display: block; opacity: 0;";
+		acr.append( controller );
+
+		document.body.addEventListener( "mouseover", e => {
+			dropdown.querySelector( ":last-child" ).scrollIntoView( true );
+			controller.querySelector( ".dropdown .dropdown-content" ).style.cssText = "";
+		}, { once: true } );
+
+		acr.change( { div: { className: "SameAuthors" } } ).change( { div: { className: "wrap" } } );
+		for ( const info of details.others ) {
+			acr.append( {
+				div: {
+					className: "comic-information-box",
+					dataset: { link: info.link, title: info.title },
+					addEventListener: [ {
+						type: "click",
+						listener: ( link => event => parseComicInfo( link ).then( info => openComic( "open-comic", { details: info } ) ) )( info.link ),
+						option: { once: true }
+					} ],
+					_CHILD: [
+						{ imgex: { className: "graphic", url: info.image } },
+						{
+							div: {
+								className: "text",
+								_CHILD: {
+									div: {
+										className: "first-wrap",
+										_CHILD: {
+											div: { className: "second-wrap", _CHILD: [ { div: { innerText: info.title } }, { div: { innerText: info.title } }, { div: { innerText: info.title } } ] }
+										}
+									}
+								}
+							}
+						}
+					]
+				}
+			} );
+		}
+	}
+}
+function openComic ( type, details ) {
+	acrDOM.remove( document.querySelectorAll( "body > *" ) );
+	new ComicInfomation( details );
+}
+function openEpisode ( uri ) {
 	if ( !uri.match( /#$/g ) ) {
 		Ajax( uri, "document",
 			( event, DOCUMENT ) => {
-				console.log( event );
+				acrDOM.remove( document.querySelectorAll( "body > *" ) );
 				new Wasabisyrup( DOCUMENT, uri.replace( /^(.+?\/\/.+?)\/.+$/gi, "$1" ), ( DOC ) => {
-					document.body.parentNode.replaceChild( DOC.body, document.body );
+					acrDOM.append( DOC.querySelectorAll( "body > *" ), document.body );
 				}, event.target.responseURL );
 			} );
 	}
 }
 init();
-if ( location.href.match( 'wasabisyrup' ) ) { new Wasabisyrup( document, location.origin ); }

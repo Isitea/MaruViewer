@@ -299,7 +299,13 @@ function main () {
 		return element;
 	}
 	function getList ( event ) {
-		let mode = event.target.dataset.mode;
+		let mode;
+		for ( const item of event.path ) {
+			if ( item.dataset && item.dataset.mode ) {
+				mode = item.dataset.mode;
+				break;
+			}
+		}
 		document.querySelector( ".mode-selector[data-mode]" ).dataset.mode = mode;
 		acr.remove( document.querySelectorAll( ".query-result .content > div" ) );
 		filtered = [];
@@ -320,7 +326,7 @@ function main () {
 		}
 	}
 	function getComicInformation ( link, origin ) {
-		console.log( `${origin}b/manga/${link.replace( /.+?(\d+)$/, "$1" )}` );
+		//console.log( `${origin}b/manga/${link.replace( /.+?(\d+)$/, "$1" )}` );
 		parseComicInfo( `${origin}b/manga/${link.replace( /.+?(\d+)$/, "$1" )}` );
 	}
 	function parseComicInfo ( url ) {
@@ -355,8 +361,8 @@ function main () {
 						} );
 					}
 				}
-				console.log( info );
-				//ipcRenderer.send( "open-comic", { type: "open-comic", details: info } );
+				//console.log( info );
+				ipcRenderer.send( "open-comic", { type: "open-comic", details: info } );
 				if ( info.link.length === 1 ) ipcRenderer.send( "open-episode", { type: "open-episode", details: { link: info.link[0].link } } );
 			} );
 	}

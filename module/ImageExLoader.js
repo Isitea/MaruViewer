@@ -98,7 +98,7 @@
 		}
 		get urls () {
 			let list = [];
-			this.iList.forEach( ( ImgEx ) => { list.push( ImgEx.requester.responseURL ); } );
+			this.iList.forEach( ImgEx => list.push( { url: ImgEx.requester.responseURL, mime: ImgEx.dataset.mime } ) );
 
 			return list;
 		}
