@@ -3,7 +3,7 @@ const electron = require('electron');
 const path = require('path');
 const EventEmitter = require('events');
 const url = require('url');
-const DEBUG = true;
+const DEBUG = false;
 
 //const { configIO } = require( "../module/config-io" );
 

@@ -241,10 +241,10 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 						"div": {
 							"className": "functionBox",
 							"_CHILD": [
-								{ "div": { "className": "Download fas fa-download" } },
-								{ "div": { "className": "Automatic fas fa-truck" } },
-								{ "div": { "className": "EditProp fas fa-edit" } },
-								{ "div": { "className": "EditApply fas fa-check", "disabled": true } }
+								{ "div": { "className": "Download fas fa-download", "title": "Download this episode" } },
+								{ "div": { "className": "Automatic fas fa-truck", "title": "and after all" } },
+								{ "div": { "className": "EditProp fas fa-edit", "title": "Make comic title and episode name editable" } },
+								{ "div": { "className": "EditApply fas fa-check", "title": "Apply edited comic title and episode name", "disabled": true } }
 							]
 						}
 					},
@@ -366,7 +366,6 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 						addEventListener: [ {
 							type: "load",
 							listener: e => {
-								console.log( e.path[0] );
 								let uri = e.path[0].contentWindow.location.href;
 								if( ORIGINAL_URI !== uri ) {
 									dom.remove( e.path[0] );
@@ -413,13 +412,9 @@ function init () {
 class ComicInfomation {
 	constructor ( { details } ) {
 		function parseComicInfo ( url ) {
-			if ( document.body.classList.contains( "running" ) ) return false;
-			else { document.body.classList.add( "running" ); }
-
 			return new Promise( ( resolve, reject ) => {
 				Ajax( url, "document",
 					( ev, DOCUMENT ) => {
-						document.body.classList.remove( "running" );
 						let info = {
 							title: DOCUMENT.querySelector( ".subject" ).innerText.replace( /^\s+|\s+$/g, "" ),
 							image: DOCUMENT.querySelector( "#vContent img" ).src,
@@ -440,7 +435,7 @@ class ComicInfomation {
 							for ( let link of DOCUMENT.querySelectorAll( "#vContent .picbox" ) ) {
 								info.others.push( {
 									title: link.querySelector( ".sbjx" ).innerText.replace( /^\s+|\s+$/g, "" ),
-									link: link.querySelector( ".sbjx a[href*=manga]" ).href,
+									link: link.querySelector( ".sbjx a" ).href,
 									image: link.querySelector( ".pic img" ).src,
 								} );
 							}
@@ -451,22 +446,21 @@ class ComicInfomation {
 		}
 
 		document.title = "Same authors";
+		console.log( details );
 		let acr = new acrDOM();
 		let controller = acr.create( {
 			'div': {
 				'className': 'controller',
 				"_CHILD": [
-					{ "a": { "className": "backward fas fa-angle-left" } },
 					{
 						"div": {
-							"className": "dropdown",
+							"className": "dropdown comic-title",
 							"_CHILD": [
-								{ "div": { "className": "dropbtn" } },
+								{ "div": { "className": "dropbtn comic-title", "innerText": `Episode list of ${details.title}`, } },
 								{ "div": { "className": "dropdown-content" } }
 							]
 						}
-					},
-					{ "a": { "className": "forward fas fa-angle-right" } }
+					}
 				]
 			}
 		} );
@@ -532,7 +526,6 @@ class ComicInfomation {
 }
 function openComic ( type, details ) {
 	acrDOM.remove( document.querySelectorAll( "body > *" ) );
-	console.log( details );
 	new ComicInfomation( details );
 }
 function openEpisode ( uri ) {

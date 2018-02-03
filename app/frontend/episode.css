@@ -190,6 +190,10 @@ body[data-automatic="1"] .functionBox .Automatic {
     width: 80%;
 }
 
+.controller .dropdown.comic-title {
+    width: 100%;
+}
+
 .controller .functionBox ~ .dropdown {
     width: 70%;
 }
@@ -211,6 +215,12 @@ body[data-automatic="1"] .functionBox .Automatic {
     font-size: 0.9em;
     position: relative;
     top: 25%;
+}
+
+.dropbtn.comic-title {
+    height: 100%;
+    line-height: 3em;
+    top: 0;
 }
 
 .dropbtn .title {

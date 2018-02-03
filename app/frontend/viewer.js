@@ -332,7 +332,6 @@ function main () {
 	function parseComicInfo ( url ) {
 		Ajax( url, "document",
 			( ev, DOCUMENT ) => {
-				document.body.classList.remove( "running" );
 				let info = {
 					title: DOCUMENT.querySelector( ".subject" ).innerText.replace( /^\s+|\s+$/g, "" ),
 					image: DOCUMENT.querySelector( "#vContent img" ).src,
@@ -345,7 +344,6 @@ function main () {
 				let links = [];
 				for ( const link of DOCUMENT.querySelectorAll( "#vContent a[href*=marumaru]:not([href*=tag]):not([href*=score]):not([href*=request])" ) )
 					if ( link.innerText.replace( /^\s+|\s+$/g, "" ).length > 0 ) links.push( link );
-				console.log( links );
 				if ( links.length === 1 ) {
 					info.others.push( {
 						info: "Previous episodes",
@@ -356,12 +354,11 @@ function main () {
 					for ( let link of DOCUMENT.querySelectorAll( "#vContent .picbox" ) ) {
 						info.others.push( {
 							title: link.querySelector( ".sbjx" ).innerText.replace( /^\s+|\s+$/g, "" ),
-							link: link.querySelector( ".sbjx a[href*=manga]" ).href,
+							link: link.querySelector( ".sbjx a" ).href,
 							image: link.querySelector( ".pic img" ).src,
 						} );
 					}
 				}
-				console.log( info );
 				if ( links.length === 1 ) {
 					ipcRenderer.send( "open-episode", { type: "open-episode", details: { link: info.link[0].link } } );
 					parseComicInfo( info.others[0].link );

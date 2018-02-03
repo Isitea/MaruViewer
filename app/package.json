@@ -4,20 +4,15 @@
   "author": "Isitea <isitea@isitea.net> (http://isitea.net/)",
   "description": "Desktop application version of MaruCleaner(chrome extension)",
   "version": "0.0.1",
-  "main": "app/backend/server.js",
+  "main": "backend/server.js",
   "dependencies": {
     "jsonfile": "^4.0.0",
     "jszip": "^3.1.5",
     "mkpath": "^1.0.0"
   },
-  "devDependencies": {
-    "electron": "1.8.2-beta.5",
-    "electron-builder": "^19.55.3"
-  },
   "repository": {
     "type": "git",
     "url": "https://Isitea@bitbucket.org/Isitea/maru-viewer-with-electron.git"
   },
-  "license": "MIT",
-  "postinstall": "electron-builder install-app-deps"
+  "license": "MIT"
 }

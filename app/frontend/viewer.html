@@ -12,17 +12,17 @@
 </head>
 <body>
 	<div class="mode-selector" data-mode="select">
-		<div class="mode-trigger" data-mode="select">
+		<div class="mode-trigger" data-mode="select" title="Menu">
 			<i class="fas fa-caret-square-down"></i>
 		</div>
 		<div class="modes">
 			<div class="separator">
-				<div class="mode-search" data-mode="search"><div class="fab fa-searchengin" style="width: 100%; height: 100%;" title="Search"></div></div>
-				<div class="mode-list-recent" data-mode="recent"><div class="far fa-bell" style="width: 100%; height: 100%;" title="Recent"></div></div>
+				<div class="mode-search" title="Search comics" data-mode="search"><div class="fab fa-searchengin" style="width: 100%; height: 100%;" title="Search"></div></div>
+				<div class="mode-list-recent" title="Recently updated" data-mode="recent"><div class="far fa-bell" style="width: 100%; height: 100%;" title="Recent"></div></div>
 			</div>
 			<div class="separator">
-				<div class="mode-list-name" data-mode="byName"><div class="fas fa-sort-alpha-down" style="width: 100%; height: 100%;" title="Sort by namne"></div></div>
-				<div class="mode-list-activity" data-mode="byActivity"><div class="fas fa-sort-numeric-down" style="width: 100%; height: 100%;" title="Sort by activity"></div></div>
+				<div class="mode-list-name" title="Sort by name" data-mode="byName"><div class="fas fa-sort-alpha-down" style="width: 100%; height: 100%;" title="Sort by namne"></div></div>
+				<div class="mode-list-activity" title="Sort by activity" data-mode="byActivity"><div class="fas fa-sort-numeric-down" style="width: 100%; height: 100%;" title="Sort by activity"></div></div>
 			</div>
 		</div>
 		<div class="search-panel">
@@ -33,12 +33,12 @@
 			<button class="search-start"><i class="fa fa-search"></i></button>
 		</div>
 		<div class="filter-panel">
-			<input class="filter-query" type="text" placeholder="What comic are you looking for?">
+			<input class="filter-query" type="text" placeholder="Text you want to highlight">
 		</div>
 	</div>
 	<div class="query-result">
 		<div class="content"></div>
-		<div class="request-more"><i class="fas fa-angle-double-down"></i></div>
+		<div class="request-more" title="Read more"><i class="fas fa-angle-double-down"></i></div>
 		<div class="list-shown prev fas fa-angle-left"></div>
 		<div class="list-shown next fas fa-angle-right"></div>
 	</div>
