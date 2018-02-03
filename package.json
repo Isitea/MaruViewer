@@ -1,16 +1,60 @@
 {
   "name": "maruviewer.electron.isitea",
+  "productName": "Maru Viewer",
+  "author": "Isitea <isitea@isitea.net> (http://isitea.net/)",
+  "description": "Desktop application version of MaruCleaner(chrome extension)",
   "version": "0.0.1",
   "main": "backend/server.js",
   "dependencies": {
+    "electron-compile": "^6.4.2",
     "jsonfile": "^4.0.0",
     "jszip": "^3.1.5",
     "mkpath": "^1.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "electron-forge": "^5.0.0",
+    "electron-prebuilt-compile": "1.7.11"
+  },
   "repository": {
     "type": "git",
     "url": "https://Isitea@bitbucket.org/Isitea/maru-viewer-with-electron.git"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
+  },
+  "config": {
+    "forge": {
+      "make_targets": {
+        "win32": [
+          "wix"
+        ],
+        "darwin": [
+          "zip"
+        ],
+        "linux": [
+          "deb",
+          "rpm"
+        ]
+      },
+      "electronPackagerConfig": {
+        "packageManager": "npm"
+      },
+      "electronWinstallerConfig": {
+        "name": "maruviewer.electron.isitea"
+      },
+      "electronInstallerDebian": {},
+      "electronInstallerRedhat": {},
+      "github_repository": {
+        "owner": "",
+        "name": ""
+      },
+      "windowsStoreConfig": {
+        "packageName": "",
+        "name": "Maru Viewer"
+      }
+    }
+  }
 }

@@ -168,7 +168,7 @@ function init() {
 	electron.app.on('activate', Views.main );
 
 	electron.app.on( 'browser-window-created', ( event, window ) => {
-		//if ( DEBUG ) window.webContents.openDevTools( { mode: "detach" } );
+		if ( DEBUG ) window.webContents.openDevTools( { mode: "detach" } );
 	} );
 
 	electron.ipcMain.on( "open-comic", ( sender, event ) => {

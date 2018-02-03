@@ -479,12 +479,7 @@ class ComicInfomation {
 					"innerText": info.title,
 					addEventListener: [ {
 						type: "click",
-						listener: ( link => event => {
-							event.preventDefault();
-							event.stopImmediatePropagation();
-							openEpisode( link );
-						} ) ( info.link ),
-						option: { once: true }
+						listener: ( link => event => ipcRenderer.send( "open-episode", { type: "open-episode", details: { link: link } } ) ) ( info.link )
 					}, {
 						type: "click",
 						listener: event => event.preventDefault()
@@ -508,7 +503,10 @@ class ComicInfomation {
 					dataset: { link: info.link, title: info.title },
 					addEventListener: [ {
 						type: "click",
-						listener: ( link => event => parseComicInfo( link ).then( info => openComic( "open-comic", { details: info } ) ) )( info.link ),
+						listener: ( link =>
+								event =>
+									parseComicInfo( link )
+										.then( info => openComic( "open-comic", { details: info } ) ) )( info.link ),
 						option: { once: true }
 					} ],
 					_CHILD: [
