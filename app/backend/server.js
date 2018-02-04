@@ -3,48 +3,46 @@ const electron = require('electron');
 const path = require('path');
 const EventEmitter = require('events');
 const url = require('url');
-const DEBUG = false;
-
-//const { configIO } = require( "../module/config-io" );
-
-electron.app.commandLine.appendSwitch('remote-debugging-port', '9222');
-//let cfg = new configIO( { file: "maruviewer.settings.json" } );
-//cfg.addEventListener( "change", ( e ) => { console.log( e.details.old, e.details.new ); } );
-//cfg.get().then( r => console.log( r ) );
+const { autoUpdater } = require('electron-updater');
+const { configIO } = require( "../module/config-io" );
+const DEBUG = true;
+process.env.GH_TOKEN = "9ad7fb4b10b3599c066ccd8dd73b8d84c1e9f1ee";
 
 class WindowManager extends EventEmitter {
-	constructor () {
+	constructor ( defOpt ) {
 		super();
 		this.windows = [];
-		const keyboard = { ESC: 0, hidden: false }, SELF = this;
+		this.defOpt = defOpt;
+		const keyboard = { toggleKey: 0, hidden: false }, SELF = this;
 
-		this.hideAllWindows = function hideAllWindows () {
-			if ( keyboard.ESC === 3 ) SELF.windows.forEach( window => { window.hide(); } );
-		};
-		this.unhideAllWindows = function unhideAllWindows () {
-			SELF.windows.forEach( window => window.show() );
-		};
 		this.toggleAllWindows = function toggleAllWindows () {
-			setTimeout( () => keyboard.ESC--, 1000 );
-			if ( ++keyboard.ESC === 3 ) {
+			setTimeout( () => keyboard.toggleKey--, 1000 );
+			if ( ++keyboard.toggleKey === 3 ) {
 				if ( keyboard.hidden ) SELF.unhideAllWindows();
 				else SELF.hideAllWindows();
 				keyboard.hidden = !keyboard.hidden;
 			}
 		};
-
 		this.close = function close ( event ) {
 			SELF.windows.splice( SELF.windows.indexOf( event.sender ), 1 );
 			SELF.emit( "updateTray" );
-		}
+		};
+	}
+
+	unhideAllWindows () {
+		this.windows.forEach( window => window.show() );
+	}
+	hideAllWindows () {
+		this.windows.forEach( window => window.hide() );
 	}
 
 	main () {
 		if ( this.windows.length > 0 ) return;
-		let window = new electron.BrowserWindow( { width: 440, height: 740, show: false, minWidth: 320, minHeight: 440 } );
+		let Opt = Object.assign( {}, this.defOpt, true );
+		let window = new electron.BrowserWindow( Opt );
 		this.windows.push( window );
 		window.setMenu( null );
-		window.once( "ready-to-show",( SELF => () => { SELF.emit( "updateTray" ); window.show(); } )( this ) );
+		window.once( "ready-to-show",( SELF => event => { SELF.emit( "updateTray" ); window.show(); } )( this ) );
 		window.on( "closed", this.close );
 		window.loadURL( url.format( {
 			pathname: path.join( __dirname, '../frontend/viewer.html'),
@@ -52,7 +50,8 @@ class WindowManager extends EventEmitter {
 		} ) );
 	}
 	comic ( { details } ) {
-		let window = new electron.BrowserWindow( { width: 600, height: 900, show: false } );
+		let Opt = Object.assign( {}, this.defOpt, true );
+		let window = new electron.BrowserWindow( Opt );
 		this.windows.push( window );
 		window.loadURL( url.format( {
 			pathname: path.join( __dirname, '../frontend/episode.html'),
@@ -67,7 +66,10 @@ class WindowManager extends EventEmitter {
 		window.setMenu( null );
 	}
 	episode ( { uri } ) {
-		let window = new electron.BrowserWindow( { width: 600, height: 900, show: false } );
+		let Opt = Object.assign( {}, this.defOpt, true );
+		delete Opt.minHeight;
+		delete Opt.minWidth;
+		let window = new electron.BrowserWindow( Opt );
 		this.windows.push( window );
 		window.loadURL( url.format( {
 			pathname: path.join( __dirname, '../frontend/episode.html'),
@@ -126,7 +128,7 @@ class Downloader {
 					} )
 				} ) )
 				.then( fd => fs.close( fd, ( err ) => {
-					if ( !err ) console.log( `Download completed: ${info.title} - ${info.episode}` );
+					if ( !err ) this.emit( `Download completed: ${info.title} - ${info.episode}` );
 					else throw err;
 				} ) )
 				.catch( err => console.log( err ) );
@@ -135,8 +137,15 @@ class Downloader {
 }
 function init() {
 	let tray;
-	const Views = new WindowManager();
-	const downloader = new Downloader();
+
+	const Views = new WindowManager( {
+		width: 440,
+		height: 740,
+		show: false,
+		minWidth: 320,
+		minHeight: 440,
+		icon: path.join( __dirname, '../resource/icon.png')
+	} );
 	Views.on( "updateTray", () => {
 		if ( Views.windows.length ) tray.setToolTip( `MaruViewer is running (${Views.windows.length})` );
 	} );
@@ -165,11 +174,12 @@ function init() {
 		electron.app.quit();
 	});
 
-	electron.app.on('activate', Views.main );
-
-	electron.app.on( 'browser-window-created', ( event, window ) => {
-		if ( DEBUG ) window.webContents.openDevTools( { mode: "detach" } );
-	} );
+	if ( DEBUG ) {
+		electron.app.commandLine.appendSwitch('remote-debugging-port', '9222');
+		electron.app.on( 'browser-window-created', ( event, window ) => {
+			window.webContents.openDevTools( { mode: "detach" } );
+		} );
+	}
 
 	electron.ipcMain.on( "open-comic", ( sender, event ) => {
 		Views.comic( { details: event.details } );
@@ -177,10 +187,15 @@ function init() {
 	electron.ipcMain.on( "open-episode", ( sender, event ) => {
 		Views.episode( { uri: event.details.link } );
 	} );
+
+	const downloader = new Downloader();
 	electron.ipcMain.on( "request-download", ( sender, event ) => {
 		downloader.add( event );
 	} );
-
 }
+
+const cfg = new configIO( { file: "maruviewer.settings.json" } );
+cfg.addEventListener( "change", ( e ) => { console.log( e.details.old, e.details.new ); } );
+cfg.get().then( r => console.log( r ) );
 
 init();

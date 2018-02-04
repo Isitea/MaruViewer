@@ -1,0 +1,25 @@
+{
+  "build": {
+    "productName": "Maru Viewer",
+    "appId": "net.isitea.electron.maruviewer",
+    "copyright": "Copyright @ 2018 Isitea",
+    "buildVersion": "0.0.1",
+    "asar": true,
+    "win": {
+      "target": [
+        "zip",
+        "nsis"
+      ],
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerHeaderIcon": ""
+    },
+    "directories": {
+      "output": "dist/",
+      "app": "app"
+    }
+  }
+}

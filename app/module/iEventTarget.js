@@ -42,6 +42,8 @@
 					else this.passive[ type ].push( listener );
 				}
 			}
+
+			return this;
 		}
 
 		removeEventListenerAll ( type ) {
@@ -50,6 +52,8 @@
 				this.once[ type ] = [];
 				this.passive[ type ] = [];
 			}
+
+			return this;
 		}
 
 		removeEventListener ( type, listener ) {
@@ -61,6 +65,8 @@
 					if ( stack_passive.includes( listener ) ) stack_passive.splice( stack_passive.indexOf( listener ), 1 );
 				}
 			}
+
+			return this;
 		}
 
 		dispatchEvent ( event ) {
@@ -83,6 +89,7 @@
 					if ( event.cancelBubble ) return !event.defaultPrevented;
 				}
 			}
+
 			return !event.defaultPrevented;
 		}
 	}

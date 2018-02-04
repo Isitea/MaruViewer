@@ -6,6 +6,7 @@
   "version": "0.0.1",
   "main": "backend/server.js",
   "dependencies": {
+    "electron-updater": "^2.20.1",
     "jsonfile": "^4.0.0",
     "jszip": "^3.1.5",
     "mkpath": "^1.0.0"
