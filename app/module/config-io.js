@@ -9,73 +9,96 @@
 
 	class configIO extends iEventTarget {
 		constructor ( { file, writeOnChange } = { file: "configIO.json", writeOnChange: false } ) {
-			function onChange ( event ) {
-				let details = event[event.type], changes;
-				switch ( event.type ) {
-					case "set":
-						if ( details.object[details.propertyKey] !== details.value ) {
-							changes = {
-								old: { [details.propertyKey]: details.object[details.propertyKey] },
-								new: { [details.propertyKey]: details.value }
-							}
-						}
-						break;
-					case "deleteProperty":
-						if ( details.object[details.propertyKey] !== undefined ) {
-							changes = {
-								old: { [details.propertyKey]: details.object[details.propertyKey] },
-								new: { [details.propertyKey]: undefined }
-							}
-						}
-						break;
-				}
-				if ( changes !== undefined ) {
-					let event = new Event( "change" );
-					Object.assign( event, { details: changes } );
-					SELF.dispatchEvent.call( SELF, event );
-				}
-			}
-
 			super();
-			this.iOO = new iOO( {} );
-			const SELF = this;
-			this.iOO.addEventListener( "set", onChange );
-			this.iOO.addEventListener( "deleteProperty", onChange );
-			if ( writeOnChange ) this.addEventListener( "change", ( event ) => {
-				this.write( this.config );
-			} );
-			this.config = this.iOO.Observed;
+			if ( writeOnChange ) this.addEventListener( "change", ( SELF => event => { SELF.write(); } )( this ) );
 			this.file = file;
-			this.task = Promise.resolve();
+			this.task = Promise.resolve( {} );
 			this.read();
 		}
 
-		get ( keys = [] ) {
-			return this.task.then( json => {
-				if ( !( keys instanceof Array ) ) keys = [ keys ];
-				if ( keys.length === 0 ) return Object.assign( {}, this.config );
-				else {
-					let result = {};
-					for ( const key of keys )
-						if ( this.config[key] !== undefined )
-							Object.assign( result, { [key]: this.config[key] } );
-
-					return result;
-				}
-			} );
-		}
-
-		set set ( data ) {
-			Object.assign( this.config, data );
-		}
-
-		set replace ( data ) {
-			for ( const key of Object.keys( this.config ) ) {
-				if ( !( key in data ) ) {
-					delete this.config[ key ];
-				}
+		static merge ( target, source, recycle = false ) {
+			if ( recycle )
+				for ( const key of Object.keys( target ) )
+					delete target[key];
+			for ( const [ key, value ] of Object.entries( source ) ) {
+				if ( typeof value === "object" ) target[key] = this.merge( target[key] || {}, value );
+				else target[key] = value;
 			}
-			Object.assign( this.config, data );
+
+			return target;
+		}
+
+		get options () {
+			return this.task;
+		}
+
+		remove ( keys ) {
+			if ( !( keys instanceof Array ) ) keys = [ keys ];
+			this.task = this.task.then( json => {
+				let event = new Event( "change" );
+				for ( const key of keys ) {
+					if ( json[key] ) {
+						this.constructor.merge( event, { details: { old: { [key]: json[key] } } } );
+					}
+					delete json[key];
+				}
+				json.update = new Date().toString();
+				if ( event.details !== undefined ) this.dispatchEvent( event );
+
+				return json;
+			} );
+
+			return this;
+		}
+
+		set ( data = {} ) {
+			this.task = this.task.then( json => {
+				let event = new Event( "change" );
+				data.update = json.update;
+				for ( const [ key, value ] of Object.entries( data ) ) {
+					if ( json[key] ) {
+						if ( json[key] !== value ) {
+							this.constructor.merge( event, { details: { old: { [key]: json[key] }, new: { [key]: value } } } );
+						}
+					}
+					else this.constructor.merge( event, { details: { new: { [key]: value } } } );
+					json[key] = value;
+				}
+				json.update = new Date().toString();
+				if ( event.details !== undefined ) this.dispatchEvent( event );
+
+				return json;
+			} );
+
+			return this;
+		}
+
+		replace ( data = {} ) {
+			this.task = this.task.then( json => {
+				let event = new Event( "change" );
+				data.update = json.update;
+				for ( const key of Object.keys( json ) ) {
+					if ( json[key] ) {
+						this.constructor.merge( event, { details: { old: { [key]: json[key] } } } );
+					}
+					delete json[key];
+				}
+				for ( const [ key, value ] of Object.entries( data ) ) {
+					if ( json[key] ) {
+						if ( json[key] !== value ) {
+							this.constructor.merge( event, { details: { old: { [key]: json[key] }, new: { [key]: value } } } );
+						}
+					}
+					else this.constructor.merge( event, { details: { new: { [key]: value } } } );
+					json[key] = value;
+				}
+				json.update = new Date().toString();
+				if ( event.details !== undefined ) this.dispatchEvent( event );
+
+				return json;
+			} );
+
+			return this;
 		}
 
 		read () {
@@ -84,34 +107,34 @@
 					if ( err !== null ) reject( err );
 					else resolve( obj );
 				} );
-			} ) ).catch( err => new Promise( ( resolve, reject ) => {
+			} ) ).catch( err => {
 				switch ( err.errno ) {
 					case -4058:
-						this.write().then( obj => resolve( obj ), reject );
-						break;
+						this.write();
+						return {};
 					default:
-						console.log( err );
-						reject( err );
-						break;
+						throw err;
 				}
-			} ) ).then( json => {
-				for ( const key of Object.keys( json ) ) this.iOO.addEventListener( "set", e => e.stopImmediatePropagation(), { once: true, prior: true } );
-				Object.assign( this.config, json );
-
-				return json;
 			} );
 
-			return this.task;
-		};
-		write ( json = this.iOO[this.iOO.id] ) {
-			Object.assign( json, { update: new Date().toString() } );
-			return new Promise( ( resolve, reject ) => {
-				jsonfile.writeFile( this.file, json, { spaces: 2 }, ( err ) => {
-					if ( err !== null ) resolve( json );
-					else reject( err );
+			return this;
+		}
+
+		write () {
+			this.task = this.task.then( ( json ) => {
+				console.log( 3, json );
+				json.update = new Date().toString();
+
+				return new Promise( ( resolve, reject ) => {
+					jsonfile.writeFile( this.file, json, { spaces: 2 }, err => {
+						if ( err !== null ) reject( err );
+						else resolve( json );
+					} );
 				} );
 			} );
-		};
+
+			return this;
+		}
 	}
 
 	const modEx = new moduleExporter();

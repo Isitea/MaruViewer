@@ -10,23 +10,20 @@ process.env.GH_TOKEN = "9ad7fb4b10b3599c066ccd8dd73b8d84c1e9f1ee";
 
 class WindowManager extends EventEmitter {
 	constructor ( defOpt ) {
+		function closed ( event ) {
+			SELF.windows.splice( SELF.windows.indexOf( event.sender ), 1 );
+			SELF.emit( "updateTray" );
+		}
+
 		super();
 		this.windows = [];
 		this.defOpt = defOpt;
-		const keyboard = { toggleKey: 0, hidden: false }, SELF = this;
+		const SELF = this;
 
-		this.toggleAllWindows = function toggleAllWindows () {
-			setTimeout( () => keyboard.toggleKey--, 1000 );
-			if ( ++keyboard.toggleKey === 3 ) {
-				if ( keyboard.hidden ) SELF.unhideAllWindows();
-				else SELF.hideAllWindows();
-				keyboard.hidden = !keyboard.hidden;
-			}
-		};
-		this.close = function close ( event ) {
-			SELF.windows.splice( SELF.windows.indexOf( event.sender ), 1 );
+		electron.app.on( 'browser-window-created', ( event, window ) => {
 			SELF.emit( "updateTray" );
-		};
+			window.on( "closed", closed )
+		} );
 	}
 
 	unhideAllWindows () {
@@ -38,19 +35,25 @@ class WindowManager extends EventEmitter {
 
 	main () {
 		if ( this.windows.length > 0 ) return;
-		let Opt = Object.assign( {}, this.defOpt, true );
+
+		let Opt = configIO.merge( {}, this.defOpt );
+		if ( Opt.width < Opt.minWidth ) Opt.width = Opt.minWidth;
+		if ( Opt.height < Opt.minHeight ) Opt.height = Opt.minHeight;
+
 		let window = new electron.BrowserWindow( Opt );
 		this.windows.push( window );
 		window.setMenu( null );
 		window.once( "ready-to-show",( SELF => event => { SELF.emit( "updateTray" ); window.show(); } )( this ) );
-		window.on( "closed", this.close );
 		window.loadURL( url.format( {
 			pathname: path.join( __dirname, '../frontend/viewer.html'),
 			protocol: "file"
 		} ) );
 	}
 	comic ( { details } ) {
-		let Opt = Object.assign( {}, this.defOpt, true );
+		let Opt = configIO.merge( {}, this.defOpt );
+		if ( Opt.width < Opt.minWidth ) Opt.width = Opt.minWidth;
+		if ( Opt.height < Opt.minHeight ) Opt.height = Opt.minHeight;
+
 		let window = new electron.BrowserWindow( Opt );
 		this.windows.push( window );
 		window.loadURL( url.format( {
@@ -62,13 +65,13 @@ class WindowManager extends EventEmitter {
 			window.webContents.send( "open-comic-link", { details: details } );
 			window.show();
 		} )( this, details ) );
-		window.on( "closed", this.close );
 		window.setMenu( null );
 	}
 	episode ( { uri } ) {
-		let Opt = Object.assign( {}, this.defOpt, true );
+		let Opt = configIO.merge( {}, this.defOpt );
 		delete Opt.minHeight;
 		delete Opt.minWidth;
+
 		let window = new electron.BrowserWindow( Opt );
 		this.windows.push( window );
 		window.loadURL( url.format( {
@@ -80,7 +83,6 @@ class WindowManager extends EventEmitter {
 			window.webContents.send( "open-episode-link", { link: uri } );
 			window.show();
 		} )( this, uri ) );
-		window.on( "closed", this.close );
 		window.setMenu( null );
 	}
 }
@@ -135,7 +137,53 @@ class Downloader {
 		};
 	}
 }
+class ShortcutManager {
+	constructor () {
+
+	}
+	
+	initialize ( Views ) {
+		this.counter = { toggleKey: 0, hidden: false };
+		this.Views = Views;
+	}
+
+	listen () {
+		electron.globalShortcut.register( "ESC", ( SELF => {
+			setTimeout( () => SELF.counter.toggleKey--, 1000 );
+			if ( ++SELF.counter.toggleKey === 3 ) {
+				if ( SELF.counter.hidden ) SELF.Views.unhideAllWindows();
+				else SELF.Views.hideAllWindows();
+				SELF.counter.hidden = !SELF.counter.hidden;
+			}
+		} ) ( this ) );
+	}
+}
+class TrayManager {
+	constructor () {
+		
+	}
+	
+	initialize () {
+		this.Tray = new electron.Tray( path.join( __dirname, '../resource/icon.png') );
+		let tray_menu = new electron.Menu();
+		tray_menu.append( new electron.MenuItem( {
+			label: "Quit",
+			role: "quit"
+		} ) );
+		this.Tray.setContextMenu( tray_menu );
+	}
+	
+	listen ( Views ) {
+		Views.on( "updateTray", () => {
+			if ( Views.windows.length ) this.Tray.setToolTip( `MaruViewer is running (${Views.windows.length})` );
+		} );
+	}
+}
 function init() {
+	const cfg = new configIO( { file: "maruviewer.settings.json", writeOnChange: true } );
+	const settings = {};
+	cfg.addEventListener( "change", ( e ) => { console.log( e.details ); cfg.options.then( json => configIO.merge( settings, json, true ) ); } );
+
 	let tray;
 
 	const Views = new WindowManager( {
@@ -146,28 +194,30 @@ function init() {
 		minHeight: 440,
 		icon: path.join( __dirname, '../resource/icon.png')
 	} );
-	Views.on( "updateTray", () => {
-		if ( Views.windows.length ) tray.setToolTip( `MaruViewer is running (${Views.windows.length})` );
-	} );
+	const Tray = new TrayManager();
+	const Shortcut = new ShortcutManager();
 
-	electron.app.on('ready', () => {
-		electron.globalShortcut.register( "ESC", Views.toggleAllWindows );
-
+	electron.app.on( 'ready', event => cfg.options.then( json => {
+		configIO.merge( settings, json, true );
+		
+		Tray.initialize();
+		Tray.listen( Views );
+		Shortcut.initialize( Views );
+		Shortcut.listen();
+		
 		electron.session.defaultSession.webRequest.onBeforeRequest( {
 			urls: [ '*://compass.adop.cc/*', '*://tab2.clickmon.co.kr/*' ]
 		}, ( details, response ) => response( { cancel: true } ) );
 
+		electron.app.on( 'browser-window-created', ( event, window ) => {
+			window.on( "resize", e => {} );
+			window.on( "move", e => {} );
+		} );
+
 		Views.main();
 
-		tray = new electron.Tray( path.join( __dirname, '../resource/icon.png') );
-		let tray_menu = new electron.Menu();
-		tray_menu.append( new electron.MenuItem( {
-			label: "Quit",
-			role: "quit"
-		} ) );
-		tray.setContextMenu( tray_menu );
 		Views.emit( "updateTray" );
-	} );
+	} ) );
 
 	electron.app.on('window-all-closed', () => {
 		tray.destroy();
@@ -193,9 +243,5 @@ function init() {
 		downloader.add( event );
 	} );
 }
-
-const cfg = new configIO( { file: "maruviewer.settings.json" } );
-cfg.addEventListener( "change", ( e ) => { console.log( e.details.old, e.details.new ); } );
-cfg.get().then( r => console.log( r ) );
 
 init();

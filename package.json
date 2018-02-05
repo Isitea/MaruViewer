@@ -30,7 +30,22 @@
     "buildVersion": "0.0.1",
     "asar": true,
     "win": {
-      "target": [ { "target": "nsis", "arch": [ "x64", "ia32" ] }, { "target": "zip", "arch": [ "x64", "ia32" ] } ],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ],
       "icon": "icon.ico"
     },
     "nsis": {
