@@ -16,14 +16,18 @@ class WindowManager extends EventEmitter {
 		}
 
 		super();
-		this.windows = [];
 		this.defOpt = defOpt;
 		const SELF = this;
 
 		electron.app.on( 'browser-window-created', ( event, window ) => {
 			SELF.emit( "updateTray" );
-			window.on( "closed", closed )
+			window.once( "ready-to-show", event => event.sender.show() );
+			window.on( "closed", closed );
 		} );
+	}
+
+	initialize () {
+		this.windows = [];
 	}
 
 	unhideAllWindows () {
@@ -42,8 +46,8 @@ class WindowManager extends EventEmitter {
 
 		let window = new electron.BrowserWindow( Opt );
 		this.windows.push( window );
+		window.actionType = "main";
 		window.setMenu( null );
-		window.once( "ready-to-show",( SELF => event => { SELF.emit( "updateTray" ); window.show(); } )( this ) );
 		window.loadURL( url.format( {
 			pathname: path.join( __dirname, '../frontend/viewer.html'),
 			protocol: "file"
@@ -56,15 +60,14 @@ class WindowManager extends EventEmitter {
 
 		let window = new electron.BrowserWindow( Opt );
 		this.windows.push( window );
+		window.actionType = "comic";
+		window.once( "ready-to-show",( ( details ) => () => {
+			window.webContents.send( "open-comic-link", { details: details } );
+		} )( details ) );
 		window.loadURL( url.format( {
 			pathname: path.join( __dirname, '../frontend/episode.html'),
 			protocol: "file"
 		} ) );
-		window.once( "ready-to-show",( ( SELF, details ) => () => {
-			SELF.emit( "updateTray" );
-			window.webContents.send( "open-comic-link", { details: details } );
-			window.show();
-		} )( this, details ) );
 		window.setMenu( null );
 	}
 	episode ( { uri } ) {
@@ -74,19 +77,18 @@ class WindowManager extends EventEmitter {
 
 		let window = new electron.BrowserWindow( Opt );
 		this.windows.push( window );
+		window.actionType = "episode";
+		window.once( "ready-to-show",( ( uri ) => () => {
+			window.webContents.send( "open-episode-link", { link: uri } );
+		} )( uri ) );
 		window.loadURL( url.format( {
 			pathname: path.join( __dirname, '../frontend/episode.html'),
 			protocol: "file"
 		} ) );
-		window.once( "ready-to-show",( ( SELF, uri ) => () => {
-			SELF.emit( "updateTray" );
-			window.webContents.send( "open-episode-link", { link: uri } );
-			window.show();
-		} )( this, uri ) );
 		window.setMenu( null );
 	}
 }
-class Downloader {
+class DownloadManager {
 	constructor () {
 		function FileRequest( url ) {
 			return new Promise( ( resolve, reject ) => {
@@ -179,10 +181,63 @@ class TrayManager {
 		} );
 	}
 }
+class NetworkManager {
+	constructor () {
+
+	}
+
+	initialize () {
+
+	}
+
+	listen () {
+		electron.session.defaultSession.webRequest.onBeforeRequest( {
+			urls: [ '*://compass.adop.cc/*', '*://tab2.clickmon.co.kr/*' ]
+		}, ( details, response ) => response( { cancel: true } ) );
+	}
+}
+class CommunicationManager {
+	constructor () {
+
+	}
+	initialize ( { Views, Downloader } ) {
+		this.Views = Views;
+		this.Downloader = Downloader;
+	}
+
+	listen () {
+		electron.ipcMain.on( "open-comic", ( SELF => ( sender, event ) => {
+			SELF.Views.comic( { details: event.details } );
+		} )( this ) );
+		electron.ipcMain.on( "open-episode", ( SELF => ( sender, event ) => {
+			SELF.Views.comic( { uri: event.details.link } );
+		} )( this ) );
+
+		electron.ipcMain.on( "request-download", ( SELF => ( sender, event ) => {
+			SELF.Downloader.add( event );
+		} )( this ) );
+	}
+}
+class NotificationManager {
+	constructor () {
+
+	}
+
+	initialize ( { icon, Views } ) {
+		this.icon = icon;
+		this.Views = Views;
+	}
+
+	notify ( { title, body, uri } ) {
+		let item = new electron.Notification( { title, body, icon: this.icon } );
+		if ( uri ) item.once( "click", ( ( SELF, uri ) => event => SELF.Views.episode( { uri } ) )( this, uri ) );
+		item.show();
+	}
+}
 function init() {
-	const cfg = new configIO( { file: "maruviewer.settings.json", writeOnChange: true } );
+	const config = new configIO( { file: "maruviewer.settings.json", writeOnChange: true } );
 	const settings = {};
-	cfg.addEventListener( "change", ( e ) => { console.log( e.details ); cfg.options.then( json => configIO.merge( settings, json, true ) ); } );
+	config.addEventListener( "change", ( e ) => { console.log( e.details ); config.options.then( json => configIO.merge( settings, json, true ) ); } );
 
 	let tray;
 
@@ -196,27 +251,41 @@ function init() {
 	} );
 	const Tray = new TrayManager();
 	const Shortcut = new ShortcutManager();
+	const Network = new NetworkManager();
+	const Communicator = new CommunicationManager();
+	const Downloader = new DownloadManager();
+	const Notifier = new NotificationManager();
 
-	electron.app.on( 'ready', event => cfg.options.then( json => {
+	electron.app.on( 'ready', event => config.options.then( json => {
 		configIO.merge( settings, json, true );
-		
+
+		Views.initialize();
 		Tray.initialize();
 		Tray.listen( Views );
 		Shortcut.initialize( Views );
 		Shortcut.listen();
-		
-		electron.session.defaultSession.webRequest.onBeforeRequest( {
-			urls: [ '*://compass.adop.cc/*', '*://tab2.clickmon.co.kr/*' ]
-		}, ( details, response ) => response( { cancel: true } ) );
+		Network.initialize();
+		Network.listen();
+		Communicator.initialize( { Views, Downloader } );
+		Communicator.listen();
+		Notifier.initialize( { Views, icon: path.join( __dirname, '../resource/icon.png') } )
 
 		electron.app.on( 'browser-window-created', ( event, window ) => {
-			window.on( "resize", e => {} );
-			window.on( "move", e => {} );
+			window.on( "resize", event => {
+				let window = event.sender;
+				if ( config[window.actionType].resize ) {
+					config.set = { [window.actionType]: { width: window.width, height: window.height } }
+				}
+			} );
+			window.on( "move", event => {
+				let window = event.sender;
+				if ( config[window.actionType].move ) {
+					config.set = { [window.actionType]: { x: window.x, y: window.y } }
+				}
+			} );
 		} );
 
 		Views.main();
-
-		Views.emit( "updateTray" );
 	} ) );
 
 	electron.app.on('window-all-closed', () => {
@@ -231,17 +300,6 @@ function init() {
 		} );
 	}
 
-	electron.ipcMain.on( "open-comic", ( sender, event ) => {
-		Views.comic( { details: event.details } );
-	} );
-	electron.ipcMain.on( "open-episode", ( sender, event ) => {
-		Views.episode( { uri: event.details.link } );
-	} );
-
-	const downloader = new Downloader();
-	electron.ipcMain.on( "request-download", ( sender, event ) => {
-		downloader.add( event );
-	} );
 }
 
 init();
