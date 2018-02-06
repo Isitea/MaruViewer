@@ -15,21 +15,28 @@
 			this.task = Promise.resolve( {} );
 		}
 
-		initialize ( DEFAULT = {} ) {
-			this.task = this.task.then( () => new Promise( ( resolve, reject ) => {
-				jsonfile.readFile( this.file, ( err, obj ) => {
-					if ( err !== null ) reject( err );
-					else resolve( obj );
+		initialize ( DEFAULT = {}, reset ) {
+			if ( reset ) {
+				this.task.then( () => reset );
+				this.write();
+			} else {
+				this.task = this.task.then( () => new Promise( ( resolve, reject ) => {
+					jsonfile.readFile( this.file, ( err, obj ) => {
+						if ( err !== null ) reject( err );
+						else resolve( obj );
+					} );
+				} ) ).catch( err => {
+					switch ( err.errno ) {
+						case -4058:
+							this.write();
+							return DEFAULT;
+						default:
+							throw err;
+					}
 				} );
-			} ) ).catch( err => {
-				switch ( err.errno ) {
-					case -4058:
-						this.write();
-						return DEFAULT;
-					default:
-						throw err;
-				}
-			} );
+			}
+
+			return this.task;
 		}
 
 		static merge ( target, source, recycle = false ) {

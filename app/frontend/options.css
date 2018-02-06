@@ -1,0 +1,103 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+html, body {
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    background: rgba( 0, 0, 0, 0.75 );
+}
+
+body {
+    padding: 24px 0 24px 0;
+    color: ghostwhite;
+}
+
+.padding-top-32px {
+    padding-top: 32px;
+}
+
+.Apply {
+    float: left;
+}
+.Reset {
+    float: right;
+}
+/*------------------------------------------------*/
+/* Switch SECTION START*/
+/*------------------------------------------------*/
+.Switch-Box {
+    width: 80%;
+    height: 32px;
+    left: 50%;
+    transform: translateX( -50% );
+}
+
+.Switch-Box > input {
+    display: none;
+}
+.Switch-Box > label {
+    float: left;
+    line-height: 32px;
+}
+
+.Switch {
+    position: relative;
+    line-height: 30px;
+    display: inline-block;
+    font-weight: bold;
+    color: #ccc;
+    text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    background: #ececec;
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.1), inset 0px 1px 3px 0px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    float: right;
+    width: 40%;
+}
+
+.Switch .Cover {
+    position: absolute;
+    top: 0;
+    z-index: 999;
+    height: 100%;
+    width: 100%;
+}
+
+.Switch span {
+    padding: 0 8px 0 8px;
+}
+.Switch span.On {
+    color: #33d2da;
+    float: left;
+}
+.Switch span.Off {
+    float: right;
+}
+
+.Switch .Toggle {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    background: #fff;
+    background: -webkit-linear-gradient(top, #ececec 0%, #ffffff 100%);
+    box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.5);
+    z-index: 99;
+    transition: all 0.15s ease-in-out;
+}
+
+input:checked + .Switch .Toggle {
+    left: 50%;
+}
+
+input + .Switch .Toggle {
+    left: 0;
+}

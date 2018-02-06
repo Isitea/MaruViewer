@@ -229,7 +229,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 							listener: ( event ) => {
 								event.preventDefault();
 								event.stopImmediatePropagation();
-								openEpisode( event.target.href );
+								openEpisode( null, { link: event.target.href } );
 							},
 							option: { once: true }
 						}, {
@@ -265,7 +265,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 							listener: ( event ) => {
 								event.preventDefault();
 								event.stopImmediatePropagation();
-								openEpisode( event.target.href );
+								openEpisode( null, { link: event.target.href } );
 							},
 							option: { once: true }
 						}, {
@@ -290,7 +290,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 						listener: ( event ) => {
 							event.preventDefault();
 							event.stopImmediatePropagation();
-							openEpisode( event.target.href );
+							openEpisode( null, { link: event.target.href } );
 						},
 						option: { once: true }
 					}, {
@@ -366,10 +366,10 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 						addEventListener: [ {
 							type: "load",
 							listener: e => {
-								let uri = e.path[0].contentWindow.location.href;
-								if( ORIGINAL_URI !== uri ) {
+								let link = e.path[0].contentWindow.location.href;
+								if( ORIGINAL_URI !== link ) {
 									dom.remove( e.path[0] );
-									openEpisode( uri );
+									openEpisode( null, { link } );
 								}
 							}
 						}, {
@@ -404,9 +404,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 
 function init () {
 	document.body.dataset.automatic = 0;
-	ipcRenderer.on( "open-episode-link", ( type, details ) => {
-		openEpisode( details.link );
-	} );
+	ipcRenderer.on( "open-episode-link", openEpisode );
 	ipcRenderer.on( "open-comic-link", openComic );
 }
 class ComicInfomation {
@@ -527,12 +525,12 @@ function openComic ( type, details ) {
 	acrDOM.remove( document.querySelectorAll( "body > *" ) );
 	new ComicInfomation( details );
 }
-function openEpisode ( uri ) {
-	if ( !uri.match( /#$/g ) ) {
-		Ajax( uri, "document",
+function openEpisode ( type, { link } ) {
+	if ( !link.match( /#$/g ) ) {
+		Ajax( link, "document",
 			( event, DOCUMENT ) => {
 				acrDOM.remove( document.querySelectorAll( "body > *" ) );
-				new Wasabisyrup( DOCUMENT, uri.replace( /^(.+?\/\/.+?)\/.+$/gi, "$1" ), ( DOC ) => {
+				new Wasabisyrup( DOCUMENT, link.replace( /^(.+?\/\/.+?)\/.+$/gi, "$1" ), ( DOC ) => {
 					acrDOM.append( DOC.querySelectorAll( "body > *" ), document.body );
 				}, event.target.responseURL );
 			} );

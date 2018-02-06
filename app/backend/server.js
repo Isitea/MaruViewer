@@ -5,7 +5,7 @@ const EventEmitter = require('events');
 const url = require('url');
 const { autoUpdater } = require('electron-updater');
 const { configIO } = require( "../module/config-io" );
-const DEBUG = false;
+const DEBUG = true;
 process.env.GH_TOKEN = "9ad7fb4b10b3599c066ccd8dd73b8d84c1e9f1ee";
 
 class WindowManager extends EventEmitter {
@@ -27,7 +27,7 @@ class WindowManager extends EventEmitter {
 					window.once( "ready-to-show", event => event.sender.show() );
 					window.on( "closed", closed );
 				} else {
-					window.on( "hide", event => event.sender.close() );
+					if ( window !== SELF.config ) window.on( "hide", event => event.sender.close() );
 				}
 			} )( { window } ) );
 		} );
@@ -36,6 +36,22 @@ class WindowManager extends EventEmitter {
 	initialize ( defOpt ) {
 		this.defOpt = defOpt;
 		this.windows = [];
+		this.config = new electron.BrowserWindow( {
+			width: 320,
+			height: 330,
+			show: false,
+			minWidth: 320,
+			minHeight: 330,
+			resizable: false,
+			frame: false,
+			alwaysOnTop: true,
+			icon: path.join( __dirname, '../resource/icon.png')
+		} );
+		this.config.setMenu( null );
+		this.config.loadURL( url.format( {
+			pathname: path.join( __dirname, '../frontend/options.html'),
+			protocol: "file"
+		} ) );
 	}
 
 	unhideAllWindows () {
@@ -221,20 +237,30 @@ class TrayManager {
 	
 	initialize ( { Views } ) {
 		this.Views = Views;
+	}
+	
+	listen () {
 		this.Tray = new electron.Tray( path.join( __dirname, '../resource/icon.png') );
 		let tray_menu = new electron.Menu();
+		tray_menu.append( new electron.MenuItem( {
+			label: "Settings",
+			click: ( SELF => ( menuItem, browserWindow, event ) => {
+				SELF.Views.config.show();
+			} )( this )
+		} ) );
+		tray_menu.append( new electron.MenuItem( {
+			type: "separator"
+		} ) );
 		tray_menu.append( new electron.MenuItem( {
 			label: "Quit",
 			role: "quit"
 		} ) );
 		this.Tray.setContextMenu( tray_menu );
-	}
-	
-	listen () {
 		this.Views.on( "updateTray",( SELF => () => {
 			if ( SELF.Views.windows.length ) this.Tray.setToolTip( `MaruViewer is running (${SELF.Views.windows.length})` );
 		} )( this ) );
 	}
+
 	close () {
 		this.Tray.destroy();
 	}
@@ -255,26 +281,43 @@ class NetworkManager {
 	}
 }
 class CommunicationManager {
-	constructor ( settings ) {
+	constructor ( { settings, defaultConfiguration } ) {
 		this.settings = settings;
+		this.defaultConfiguration = defaultConfiguration;
 	}
-	initialize ( { Views, Downloader } ) {
+	initialize ( { Views, Downloader, config } ) {
 		this.Views = Views;
 		this.Downloader = Downloader;
+		this.config = config;
 	}
 
 	listen () {
-		electron.ipcMain.on( "open-comic", ( SELF => ( sender, event ) => {
-			SELF.Views.comic( { details: event.details } );
+		electron.ipcMain.on( "open-comic", ( SELF => ( event, details ) => {
+			SELF.Views.comic( { details: details.details } );
 		} )( this ) );
-		electron.ipcMain.on( "open-episode", ( SELF => ( sender, event ) => {
-			SELF.Views.episode( { uri: event.details.link } );
+		electron.ipcMain.on( "open-episode", ( SELF => ( event, details ) => {
+			SELF.Views.episode( { uri: details.details.link } );
 		} )( this ) );
 
-		electron.ipcMain.on( "request-download", ( SELF => ( sender, event ) => {
-			if ( SELF.settings.path && SELF.settings.path.length > 0 ) event.path = SELF.settings.path + '/' + event.title;
-			else event.path = event.title;
-			SELF.Downloader.download( event );
+		electron.ipcMain.on( "read-options", ( SELF => ( event, details ) => {
+			console.log( event );
+			event.sender.send( "read-options", SELF.settings );
+		} )( this ) );
+		electron.ipcMain.on( "apply-options", ( SELF => ( event, details ) => {
+			console.log( details );
+			SELF.config.set( {} );
+			//event.sender.send( "read-options", SELF.settings );
+		} )( this ) );
+		electron.ipcMain.on( "reset-options", ( SELF => ( event, details ) => {
+			SELF.config.initialize( SEFL.defaultConfiguration, true )
+				.then( json => configIO.merge( SELF.settings, json, true ) )
+				.then( json => event.sender.send( "read-options", SELF.settings ) );
+		} )( this ) );
+
+		electron.ipcMain.on( "request-download", ( SELF => ( event, details ) => {
+			if ( SELF.settings.path && SELF.settings.path.length > 0 ) details.path = SELF.settings.path + '/' + details.title;
+			else details.path = details.title;
+			SELF.Downloader.download( details );
 		} )( this ) );
 	}
 
@@ -360,21 +403,22 @@ class MaruObserver {
 function init() {
 	const config = new configIO( { file: "maruviewer.settings.json", writeOnChange: true } );
 	const settings = {};
-	config.initialize( {
+	const defaultConfiguration = {
 		resize: true,
 		move: true,
 		shortcut: true,
 		updateChecker: false,
 		notification: true
-	} );
+	};
+	config.initialize( defaultConfiguration, false )
+		.then( json => configIO.merge( settings, json, true ) );
 	//config.addEventListener( "change", ( e ) => { console.log( e.details ); } );
-	config.options.then( json => configIO.merge( settings, json, true ) );
 
-	const Views = new WindowManager(  settings  );
+	const Views = new WindowManager( settings );
 	const Tray = new TrayManager( settings );
 	const Shortcut = new ShortcutManager( settings );
 	const Network = new NetworkManager( settings );
-	const Communicator = new CommunicationManager( settings );
+	const Communicator = new CommunicationManager( { settings, defaultConfiguration } );
 	const Downloader = new DownloadManager( settings );
 	const Notifier = new NotificationManager( settings );
 	const Observer = new MaruObserver( settings );
@@ -396,7 +440,7 @@ function init() {
 		if ( settings.shortcut ) Shortcut.listen();
 		Network.initialize();
 		Network.listen();
-		Communicator.initialize( { Views, Downloader } );
+		Communicator.initialize( { Views, Downloader, config } );
 		Communicator.listen();
 		Downloader.initialize( { Notifier } );
 		Downloader.listen();

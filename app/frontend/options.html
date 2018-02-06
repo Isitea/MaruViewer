@@ -5,8 +5,62 @@
 	<title>Settings</title>
 	<script defer src="options.js" ></script>
 	<link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
+	<link rel="stylesheet" href="options.css" />
 </head>
 <body>
-
+	<div class="Switch-Box Input-Box">
+		<label for="updateChecker">업데이트 알림</label>
+		<input type="checkbox" id="updateChecker">
+		<div class="Switch">
+			<div class="Toggle"></div>
+			<span class="On">ON</span> <span class="Off">OFF</span>
+			<div class="Cover"></div>
+		</div>
+	</div>
+	<div class="Switch-Box Input-Box">
+		<label for="notification">다운로드/오류 알림</label>
+		<input type="checkbox" id="notification">
+		<div class="Switch">
+			<div class="Toggle"></div>
+			<span class="On">ON</span> <span class="Off">OFF</span>
+			<div class="Cover"></div>
+		</div>
+	</div>
+	<div class="Switch-Box Input-Box">
+		<label for="shortcut">단축키 적용</label>
+		<input type="checkbox" id="shortcut">
+		<div class="Switch">
+			<div class="Toggle"></div>
+			<span class="On">ON</span> <span class="Off">OFF</span>
+			<div class="Cover"></div>
+		</div>
+	</div>
+	<div class="Switch-Box Input-Box">
+		<label for="resize">창 크기 기억</label>
+		<input type="checkbox" id="resize">
+		<div class="Switch">
+			<div class="Toggle"></div>
+			<span class="On">ON</span> <span class="Off">OFF</span>
+			<div class="Cover"></div>
+		</div>
+	</div>
+	<div class="Switch-Box Input-Box">
+		<label for="move">창 위치 기억</label>
+		<input type="checkbox" id="move">
+		<div class="Switch">
+			<div class="Toggle"></div>
+			<span class="On">ON</span> <span class="Off">OFF</span>
+			<div class="Cover"></div>
+		</div>
+	</div>
+	<div class="Switch-Box Input-Box">
+		<label for="path">다운로드 위치</label>
+		<input type="text" id="path">
+		<div class="Switch far fa-folder-open">저장 위치</div>
+	</div>
+	<div class="Switch-Box padding-top-32px">
+		<div class="Apply fas fa-check">적용</div>
+		<div class="Reset fas fa-redo">초기화</div>
+	</div>
 </body>
 </html>
