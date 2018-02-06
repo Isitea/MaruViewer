@@ -36,22 +36,6 @@ class WindowManager extends EventEmitter {
 	initialize ( defOpt ) {
 		this.defOpt = defOpt;
 		this.windows = [];
-		this.config = new electron.BrowserWindow( {
-			width: 320,
-			height: 330,
-			show: false,
-			minWidth: 320,
-			minHeight: 330,
-			resizable: false,
-			frame: false,
-			alwaysOnTop: true,
-			icon: path.join( __dirname, '../resource/icon.png')
-		} );
-		this.config.setMenu( null );
-		this.config.loadURL( url.format( {
-			pathname: path.join( __dirname, '../frontend/options.html'),
-			protocol: "file"
-		} ) );
 	}
 
 	unhideAllWindows () {
@@ -134,6 +118,32 @@ class WindowManager extends EventEmitter {
 			protocol: "file"
 		} ) );
 		window.setMenu( null );
+	}
+	configuration ( SWITCH ) {
+		if ( this.config ) {
+			this.config.show();
+			if ( !SWITCH ) {
+				this.config.close();
+				this.config = null;
+			}
+		} else {
+			this.config = new electron.BrowserWindow( {
+				width: 320,
+				height: 330,
+				show: false,
+				minWidth: 320,
+				minHeight: 330,
+				resizable: false,
+				//frame: false,
+				alwaysOnTop: true,
+				icon: path.join( __dirname, '../resource/icon.png')
+			} );
+			this.config.setMenu( null );
+			this.config.loadURL( url.format( {
+				pathname: path.join( __dirname, '../frontend/options.html'),
+				protocol: "file"
+			} ) );
+		}
 	}
 }
 class DownloadManager {
@@ -245,7 +255,7 @@ class TrayManager {
 		tray_menu.append( new electron.MenuItem( {
 			label: "Settings",
 			click: ( SELF => ( menuItem, browserWindow, event ) => {
-				SELF.Views.config.show();
+				SELF.Views.configuration( true );
 			} )( this )
 		} ) );
 		tray_menu.append( new electron.MenuItem( {
@@ -300,16 +310,17 @@ class CommunicationManager {
 		} )( this ) );
 
 		electron.ipcMain.on( "read-options", ( SELF => ( event, details ) => {
-			console.log( event );
 			event.sender.send( "read-options", SELF.settings );
 		} )( this ) );
 		electron.ipcMain.on( "apply-options", ( SELF => ( event, details ) => {
-			console.log( details );
-			SELF.config.set( {} );
+			SELF.Views.configuration( false );
+			SELF.config.set( details )
+				.then( json => configIO.merge( SELF.settings, json, true ) )
+				.task.catch( e => console.log( e ) );
 			//event.sender.send( "read-options", SELF.settings );
 		} )( this ) );
 		electron.ipcMain.on( "reset-options", ( SELF => ( event, details ) => {
-			SELF.config.initialize( SEFL.defaultConfiguration, true )
+			SELF.config.initialize( SELF.defaultConfiguration, true )
 				.then( json => configIO.merge( SELF.settings, json, true ) )
 				.then( json => event.sender.send( "read-options", SELF.settings ) );
 		} )( this ) );
@@ -408,7 +419,8 @@ function init() {
 		move: true,
 		shortcut: true,
 		updateChecker: false,
-		notification: true
+		notification: true,
+		path: ""
 	};
 	config.initialize( defaultConfiguration, false )
 		.then( json => configIO.merge( settings, json, true ) );

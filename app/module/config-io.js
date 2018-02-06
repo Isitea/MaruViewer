@@ -44,7 +44,7 @@
 				for ( const key of Object.keys( target ) )
 					delete target[key];
 			for ( const [ key, value ] of Object.entries( source ) ) {
-				if ( typeof value === "object" ) target[key] = this.merge( target[key] || {}, value );
+				if ( typeof value === "object" ) target[key] = this.merge( target[key] || {}, value, false );
 				else target[key] = value;
 			}
 

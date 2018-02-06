@@ -17,10 +17,23 @@ function init (  ) {
 	} );
 
 	document.querySelector( ".Switch-Box .Apply" ).addEventListener( "click", () => {
-
+		let settings = {};
+		for ( const item of  document.querySelectorAll( 'input' ) ) {
+			switch ( item.type ) {
+				case "checkbox":
+					settings[item.id] = item.checked;
+					break;
+				case "text":
+					settings[item.id] = item.value;
+					break;
+			}
+		}
+		ipcRenderer.send( "apply-options", settings );
 	} );
 	document.querySelector( ".Switch-Box .Reset" ).addEventListener( "click", () => {
 		ipcRenderer.send( "reset-options" );
 	} );
 }
 document.addEventListener( "DOMContentLoaded", init );
+console.log( global );
+console.log( window );

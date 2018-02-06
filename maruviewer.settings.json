@@ -4,9 +4,10 @@
   "shortcut": true,
   "updateChecker": false,
   "notification": true,
-  "update": "Tue Feb 06 2018 21:07:26 GMT+0900 (Korea Standard Time)",
+  "update": "Tue Feb 06 2018 22:47:11 GMT+0900 (Korea Standard Time)",
   "main": {
     "x": 740,
     "y": 150
-  }
+  },
+  "path": ""
 }
