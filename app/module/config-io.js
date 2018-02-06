@@ -13,7 +13,23 @@
 			if ( writeOnChange ) this.addEventListener( "change", ( SELF => event => { SELF.write(); } )( this ) );
 			this.file = file;
 			this.task = Promise.resolve( {} );
-			this.read();
+		}
+
+		initialize ( DEFAULT = {} ) {
+			this.task = this.task.then( () => new Promise( ( resolve, reject ) => {
+				jsonfile.readFile( this.file, ( err, obj ) => {
+					if ( err !== null ) reject( err );
+					else resolve( obj );
+				} );
+			} ) ).catch( err => {
+				switch ( err.errno ) {
+					case -4058:
+						this.write();
+						return DEFAULT;
+					default:
+						throw err;
+				}
+			} );
 		}
 
 		static merge ( target, source, recycle = false ) {
@@ -107,22 +123,13 @@
 					if ( err !== null ) reject( err );
 					else resolve( obj );
 				} );
-			} ) ).catch( err => {
-				switch ( err.errno ) {
-					case -4058:
-						this.write();
-						return {};
-					default:
-						throw err;
-				}
-			} );
+			} ) );
 
 			return this;
 		}
 
 		write () {
 			this.task = this.task.then( ( json ) => {
-				console.log( 3, json );
 				json.update = new Date().toString();
 
 				return new Promise( ( resolve, reject ) => {

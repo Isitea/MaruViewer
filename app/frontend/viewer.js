@@ -344,12 +344,14 @@ function main () {
 				let links = [];
 				for ( const link of DOCUMENT.querySelectorAll( "#vContent a[href*=marumaru]:not([href*=tag]):not([href*=score]):not([href*=request])" ) )
 					if ( link.innerText.replace( /^\s+|\s+$/g, "" ).length > 0 ) links.push( link );
-				if ( links.length === 1 ) {
+				if ( links.length ) {
 					info.others.push( {
 						info: "Previous episodes",
 						image: info.image,
 						link: links[0].href
 					} );
+					ipcRenderer.send( "open-episode", { type: "open-episode", details: { link: info.link[0].link } } );
+					parseComicInfo( info.others[0].link );
 				} else {
 					for ( let link of DOCUMENT.querySelectorAll( "#vContent .picbox" ) ) {
 						info.others.push( {
@@ -358,12 +360,9 @@ function main () {
 							image: link.querySelector( ".pic img" ).src,
 						} );
 					}
+					if ( info.others.length ) ipcRenderer.send( "open-comic", { type: "open-comic", details: info } );
+					else ipcRenderer.send( "open-episode", { type: "open-episode", details: { link: info.link[0].link } } );
 				}
-				if ( links.length === 1 ) {
-					ipcRenderer.send( "open-episode", { type: "open-episode", details: { link: info.link[0].link } } );
-					parseComicInfo( info.others[0].link );
-				}
-				else ipcRenderer.send( "open-comic", { type: "open-comic", details: info } );
 			} );
 	}
 

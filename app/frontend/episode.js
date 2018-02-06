@@ -446,7 +446,6 @@ class ComicInfomation {
 		}
 
 		document.title = "Same authors";
-		console.log( details );
 		let acr = new acrDOM();
 		let controller = acr.create( {
 			'div': {
