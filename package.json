@@ -6,7 +6,7 @@
   "version": "0.0.1",
   "main": "app/backend/server.js",
   "devDependencies": {
-    "electron": "1.8.2-beta.5"
+    "electron": "1.8.2"
   },
   "repository": {
     "type": "git",
@@ -27,7 +27,7 @@
     "productName": "Maru Viewer",
     "appId": "net.isitea.electron.maruviewer",
     "copyright": "Copyright @ 2018 Isitea",
-    "buildVersion": "0.0.1",
+    "buildVersion": "0.1.0",
     "asar": true,
     "win": {
       "target": [

@@ -7,7 +7,7 @@
   "main": "backend/server.js",
   "dependencies": {
     "electron-notify": "^0.1.0",
-    "electron-updater": "^2.20.1",
+    "electron-updater": "^2.20.2",
     "jsonfile": "^4.0.0",
     "jszip": "^3.1.5",
     "mkpath": "^1.0.0"

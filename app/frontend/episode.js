@@ -9,6 +9,7 @@ const { ImageEx } = require( "../module/ImageEx" );
 const { ImageExLoader } = require( "../module/ImageExLoader" );
 const { acrDOM } = require( "../module/acrDOM" );
 const { ipcRenderer } = require( "electron" );
+const siteRecognizer = "marumaru";
 
 function Ajax ( url, type = "document", response ) {
 	let xhr = new XMLHttpRequest();
@@ -419,8 +420,8 @@ class ComicInfomation {
 							link: [],
 							others: []
 						};
-						let links = DOCUMENT.querySelectorAll( "#vContent a[href*=marumaru]:not([href*=tag]):not([href*=score]):not([href*=request])" );
-						for ( let link of DOCUMENT.querySelectorAll( "#vContent a[href*=http]:not([href*=marumaru])" ) ) {
+						let links = DOCUMENT.querySelectorAll( `#vContent a[href*=${siteRecognizer}]:not([href*=tag]):not([href*=score]):not([href*=request])` );
+						for ( let link of DOCUMENT.querySelectorAll( `#vContent a[href*=http]:not([href*=${siteRecognizer}])` ) ) {
 							info.link.push( { title: link.innerText, link: link.href } );
 						}
 						if ( links.length === 1 ) {

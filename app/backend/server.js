@@ -48,7 +48,7 @@ class WindowManager extends EventEmitter {
 	static findAndShow ( actionType ) {
 		let flag = false;
 		for ( const window of this.windows ) {
-			if ( window.actionType === "main" ) {
+			if ( window.actionType === actionType ) {
 				window.show();
 				flag = true;
 			}
@@ -56,11 +56,10 @@ class WindowManager extends EventEmitter {
 
 		return flag;
 	}
-
 	static findAndAction ( actionType, Action ) {
 		let flag = false;
 		for ( const window of this.windows ) {
-			if ( window.actionType === "main" ) {
+			if ( window.actionType === actionType ) {
 				Action( window );
 				flag = true;
 			}
@@ -96,6 +95,7 @@ class WindowManager extends EventEmitter {
 	comic ( { details } ) {
 		let Opt = configIO.merge( {}, this.defOpt ), actionType = "comic";
 		if ( this.constructor.findAndShow.call( this, actionType ) ) {}
+		if ( !details ) return;
 
 		if ( this.settings.resize && ( this.settings[actionType] && this.settings[actionType].width && this.settings[actionType].height ) ) {
 			Opt.width = this.settings[actionType].width;
@@ -111,8 +111,8 @@ class WindowManager extends EventEmitter {
 		let window = new electron.BrowserWindow( Opt );
 		this.windows.push( window );
 		window.actionType = actionType;
-		window.once( "ready-to-show",( ( details ) => () => {
-			window.webContents.send( "open-comic-link", { details: details } );
+		window.once( "ready-to-show",( details => () => {
+			window.webContents.send( "open-comic-link", { details } );
 		} )( details ) );
 		window.loadURL( url.format( {
 			pathname: path.join( __dirname, '../frontend/episode.html'),
@@ -123,6 +123,7 @@ class WindowManager extends EventEmitter {
 	episode ( { uri } ) {
 		let Opt = configIO.merge( {}, this.defOpt ), actionType = "episode";
 		if ( this.constructor.findAndShow.call( this, actionType ) ) {}
+		if ( !uri ) return;
 
 		if ( this.settings.resize && ( this.settings[actionType] && this.settings[actionType].width && this.settings[actionType].height ) ) {
 			Opt.width = this.settings[actionType].width;
@@ -283,6 +284,21 @@ class TrayManager {
 			click: ( SELF => ( menuItem, browserWindow, event ) => {
 				SELF.Views.main();
 			} )( this )
+		} ) );
+		tray_menu.append( new electron.MenuItem( {
+			label: "Show comic information pages",
+			click: ( SELF => ( menuItem, browserWindow, event ) => {
+				SELF.Views.comic( {} );
+			} )( this )
+		} ) );
+		tray_menu.append( new electron.MenuItem( {
+			label: "Show comic episode pages",
+			click: ( SELF => ( menuItem, browserWindow, event ) => {
+				SELF.Views.episode( {} );
+			} )( this )
+		} ) );
+		tray_menu.append( new electron.MenuItem( {
+			type: "separator"
 		} ) );
 		tray_menu.append( new electron.MenuItem( {
 			label: "Settings",
@@ -481,7 +497,7 @@ function init() {
 		resize: true,
 		move: true,
 		shortcut: true,
-		updateChecker: false,
+		updateChecker: true,
 		notification: true,
 		sameAuthor: true,
 		path: ""
@@ -507,6 +523,7 @@ function init() {
 			let window = event.sender;
 			if ( window.actionType && settings.resize ) {
 				let [ width, height ] = window.getSize();
+				if ( !settings[window.actionType] ) settings[window.actionType] = {};
 				configIO.merge( settings[window.actionType], { width, height } );
 				config.set( { update: Date.now() } );
 			}
@@ -515,6 +532,7 @@ function init() {
 			let window = event.sender;
 			if ( window.actionType && settings.move ) {
 				let [ x, y ] = window.getPosition();
+				if ( !settings[window.actionType] ) settings[window.actionType] = {};
 				configIO.merge( settings[window.actionType], { x, y } );
 				config.set( { update: Date.now() } );
 			}

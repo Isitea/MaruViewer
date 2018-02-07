@@ -15,12 +15,10 @@
 				function writeTimer ( event ) {
 					if ( Date.now() - lastStamp > delay ) {
 						lastStamp = Date.now();
-						console.log( `Saved: ${lastStamp}` );
 						SELF.write();
 					} else {
 						clearTimeout( lastTimer );
 						lastTimer = setTimeout( writeTimer, delay, event );
-						console.log( `Timer activate ${lastStamp}` );
 					}
 				}
 
@@ -71,7 +69,7 @@
 				}
 			} else {
 				for ( const [ key, value ] of Object.entries( source ) ) {
-					if ( typeof value === "object" && typeof value === typeof target[key] ) target[ key ] = this.merge( target[ key ], value, false );
+					if ( typeof value === "object" && typeof value === typeof target[key] ) this.merge( target[ key ], value, false );
 					else target[ key ] = value;
 				}
 			}

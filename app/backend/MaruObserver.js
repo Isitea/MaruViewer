@@ -1,4 +1,8 @@
 "use strict";
+const siteRecognizer = "marumaru";
+const siteAddress = `http://${siteRecognizer}.in`;
+const { ipcRenderer } = require( "electron" );
+
 function parseUpdates () {
 	function Ajax ( url, response ) {
 		let xhr = new XMLHttpRequest();
@@ -9,30 +13,30 @@ function parseUpdates () {
 		xhr.send();
 	}
 
-	return new Promise( ( resolve, reject ) => Ajax( `http://marumaru.in/?c=26&recnum=9&sort=gid&p=1`, resolve ) )
+	return new Promise( ( resolve, reject ) => Ajax( `${siteAddress}/?c=26&recnum=9&sort=gid&p=1`, resolve ) )
 		.then( DOCUMENT => new Promise( ( resolve, reject ) => {
 			let informations = [];
 			DOCUMENT.querySelectorAll( "#boardList table tbody tr[cid]" ).forEach( ( Anchor ) => {
 				let info = {
 					title: Anchor.querySelector( "td div[cid]" ).firstChild.textContent.replace( /^\s*|\s*$/, "" ),
-					link: `http://marumaru.in/b/manga/${Anchor.querySelector( "td a" ).href.replace( /.+?(\d+)$/, "$1" )}`
+					link: `${siteAddress}/b/manga/${Anchor.querySelector( "td a" ).href.replace( /.+?(\d+)$/, "$1" )}`
 				};
 				if ( informations.length ) {
 					informations.push( informations[informations.length - 1].then( () => new Promise( ( resolve, reject ) => Ajax( info.link, resolve ) )
 						.then( DOCUMENT => {
-							let link = DOCUMENT.querySelector( "#vContent a[href*=http]:not([href*=marumaru])" );
+							let link = DOCUMENT.querySelector( `#vContent a[href*=http]:not([href*=${siteRecognizer}])` );
 							return { title: info.title, link: link.href };
 						} ) ) );
 				} else {
 					informations.push( new Promise( ( resolve, reject ) => Ajax( info.link, resolve ) )
 						.then( DOCUMENT => {
-							let link = DOCUMENT.querySelector( "#vContent a[href*=http]:not([href*=marumaru])" );
+							let link = DOCUMENT.querySelector( `#vContent a[href*=http]:not([href*=${siteRecognizer}])` );
 							return { title: info.title, link: link.href };
 						} ) );
 				}
 				informations.push( new Promise( ( resolve, reject ) => Ajax( info.link, resolve ) )
 					.then( DOCUMENT => {
-						let link = DOCUMENT.querySelector( "#vContent a[href*=http]:not([href*=marumaru])" );
+						let link = DOCUMENT.querySelector( `#vContent a[href*=http]:not([href*=${siteRecognizer}])` );
 						return { title: info.title, link: link.href };
 					} ) );
 			} );
@@ -54,7 +58,6 @@ function parseUpdates () {
 		} );
 }
 
-const { ipcRenderer } = require( "electron" );
 let List = [];
 setInterval( parseUpdates, 15 * 60 * 1000 );
 parseUpdates();
