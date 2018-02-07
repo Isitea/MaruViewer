@@ -17,8 +17,8 @@ body {
     color: ghostwhite;
 }
 
-.padding-top-32px {
-    padding-top: 32px;
+.padding-top-16px {
+    padding-top: 16px;
 }
 
 .Apply {
@@ -71,6 +71,9 @@ body {
 
 .Switch span {
     padding: 0 8px 0 8px;
+}
+.Switch[title*=":"], .Switch[title*="/"], .Switch[title*="~"] {
+    color: #33d2da;
 }
 .Switch span.On {
     color: #33d2da;

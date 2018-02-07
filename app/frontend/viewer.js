@@ -351,7 +351,7 @@ function main () {
 						link: links[0].href
 					} );
 					ipcRenderer.send( "open-episode", { type: "open-episode", details: { link: info.link[0].link } } );
-					parseComicInfo( info.others[0].link );
+					if ( settings.sameAuthor ) parseComicInfo( info.others[0].link );
 				} else {
 					for ( let link of DOCUMENT.querySelectorAll( "#vContent .picbox" ) ) {
 						info.others.push( {
@@ -365,9 +365,23 @@ function main () {
 				}
 			} );
 	}
+	function readOptions () {
+		ipcRenderer.send( "read-options" );
+		ipcRenderer.on( "read-options", ( event, changed ) => {
+			for ( const key of Object.keys( settings ) )
+				delete settings[key];
+
+			for ( const [ key, value ] of Object.entries( changed ) )
+				settings[key] = value;
+		} );
+	}
 
 	let acr = new acrDOM( document.querySelector( ".query-result .content" ) );
 	let filtered = [], ORIGIN = "http://marumaru.in/";
+	const settings = {};
+
+	ipcRenderer.on( 'update-options', readOptions );
+	readOptions();
 
 	initContent();
 	initModes();

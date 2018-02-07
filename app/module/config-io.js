@@ -4,51 +4,85 @@
 	const { moduleExporter } = require( "./module-exporter" );
 	const { iEventTarget } = require( "./iEventTarget" );
 	const { iEvent: Event } = require( "./iEvent" );
-	const { iOO } = require( "./ObjectObserver" );
 	const jsonfile = require( 'jsonfile' );
 
 	class configIO extends iEventTarget {
-		constructor ( { file, writeOnChange } = { file: "configIO.json", writeOnChange: false } ) {
+		constructor ( { file = "configIO.json", writeOnChange = false, chainingObject = {} }, defaultConfiguration = {} ) {
 			super();
-			if ( writeOnChange ) this.addEventListener( "change", ( SELF => event => { SELF.write(); } )( this ) );
+			if ( writeOnChange ) this.addEventListener( "change", ( SELF => {
+				let lastStamp = Date.now() - 500, delay = 250, lastTimer;
+
+				function writeTimer ( event ) {
+					if ( Date.now() - lastStamp > delay ) {
+						lastStamp = Date.now();
+						console.log( `Saved: ${lastStamp}` );
+						SELF.write();
+					} else {
+						clearTimeout( lastTimer );
+						lastTimer = setTimeout( writeTimer, delay, event );
+						console.log( `Timer activate ${lastStamp}` );
+					}
+				}
+
+				return writeTimer;
+			} )( this ) );
 			this.file = file;
-			this.task = Promise.resolve( {} );
+			this.defaultConfiguration = defaultConfiguration;
+			this.task = Promise.resolve( this.constructor.merge( chainingObject, defaultConfiguration ) );
 		}
 
-		initialize ( DEFAULT = {}, reset ) {
+		initialize ( reset ) {
 			if ( reset ) {
-				this.task.then( () => reset );
+				this.task = this.task.then( json => this.constructor.merge( json, this.defaultConfiguration, true ) );
 				this.write();
 			} else {
-				this.task = this.task.then( () => new Promise( ( resolve, reject ) => {
+				this.task = this.task.then( json => new Promise( ( resolve, reject ) => {
 					jsonfile.readFile( this.file, ( err, obj ) => {
 						if ( err !== null ) reject( err );
-						else resolve( obj );
+						else resolve( this.constructor.merge( json, obj, true ) );
 					} );
-				} ) ).catch( err => {
+				} ).catch( err => {
 					switch ( err.errno ) {
 						case -4058:
-							this.write();
-							return DEFAULT;
+							this.write( );
+							return json;
 						default:
 							throw err;
 					}
-				} );
+				} ) );
 			}
 
-			return this.task;
+			return this;
 		}
 
-		static merge ( target, source, recycle = false ) {
-			if ( recycle )
-				for ( const key of Object.keys( target ) )
+		static merge ( target, source, purge = false ) {
+			if ( typeof target !== "object" ) return target;
+			if ( target === source ) {
+				console.log( "Equal" );
+				return target;
+			}
+			if ( purge ) {
+				for ( const key of Object.keys( target ) ) {
 					delete target[key];
-			for ( const [ key, value ] of Object.entries( source ) ) {
-				if ( typeof value === "object" ) target[key] = this.merge( target[key] || {}, value, false );
-				else target[key] = value;
+				}
+
+				for ( const [ key, value ] of Object.entries( source ) ) {
+					target[key] = value;
+				}
+			} else {
+				for ( const [ key, value ] of Object.entries( source ) ) {
+					if ( typeof value === "object" && typeof value === typeof target[key] ) target[ key ] = this.merge( target[ key ], value, false );
+					else target[ key ] = value;
+				}
 			}
 
 			return target;
+		}
+
+		addQueue ( fn ) {
+			this.task = this.task.then( fn );
+
+			return this;
 		}
 
 		get options () {
@@ -77,7 +111,6 @@
 		set ( data = {} ) {
 			this.task = this.task.then( json => {
 				let event = new Event( "change" );
-				data.update = json.update;
 				for ( const [ key, value ] of Object.entries( data ) ) {
 					if ( json[key] ) {
 						if ( json[key] !== value ) {
@@ -88,7 +121,9 @@
 					json[key] = value;
 				}
 				json.update = new Date().toString();
-				if ( event.details !== undefined ) this.dispatchEvent( event );
+				if ( event.details !== undefined ) {
+					this.dispatchEvent( event );
+				}
 
 				return json;
 			} );
@@ -99,7 +134,6 @@
 		replace ( data = {} ) {
 			this.task = this.task.then( json => {
 				let event = new Event( "change" );
-				data.update = json.update;
 				for ( const key of Object.keys( json ) ) {
 					if ( json[key] ) {
 						this.constructor.merge( event, { details: { old: { [key]: json[key] } } } );
@@ -125,10 +159,10 @@
 		}
 
 		read () {
-			this.task = this.task.then( () => new Promise( ( resolve, reject ) => {
+			this.task = this.task.then( json => new Promise( ( resolve, reject ) => {
 				jsonfile.readFile( this.file, ( err, obj ) => {
 					if ( err !== null ) reject( err );
-					else resolve( obj );
+					else resolve( this.constructor.merge( json, obj, true ) );
 				} );
 			} ) );
 
@@ -136,7 +170,7 @@
 		}
 
 		write () {
-			this.task = this.task.then( ( json ) => {
+			this.task = this.task.then( json => {
 				json.update = new Date().toString();
 
 				return new Promise( ( resolve, reject ) => {
