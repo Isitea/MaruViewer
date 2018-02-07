@@ -50,6 +50,7 @@ function init (  ) {
 			}
 		}
 		ipcRenderer.send( "apply-options", settings );
+		window.close();
 	} );
 	document.querySelector( ".Switch-Box .Reset" ).addEventListener( "click", () => {
 		ipcRenderer.send( "reset-options" );

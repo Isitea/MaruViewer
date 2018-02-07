@@ -148,12 +148,9 @@ class WindowManager extends EventEmitter {
 		} ) );
 		window.setMenu( null );
 	}
-	configuration ( SWITCH ) {
+	configuration () {
 		if ( this.config ) {
 			this.config.show();
-			if ( !SWITCH ) {
-				this.config.close();
-			}
 		} else {
 			this.config = new electron.BrowserWindow( {
 				width: 320,
@@ -303,7 +300,7 @@ class TrayManager {
 		tray_menu.append( new electron.MenuItem( {
 			label: "Settings",
 			click: ( SELF => ( menuItem, browserWindow, event ) => {
-				SELF.Views.configuration( true );
+				SELF.Views.configuration();
 			} )( this )
 		} ) );
 		tray_menu.append( new electron.MenuItem( {
@@ -360,7 +357,6 @@ class CommunicationManager {
 			event.sender.send( "read-options", SELF.settings );
 		} )( this ) );
 		electron.ipcMain.on( "apply-options", ( SELF => ( event, details ) => {
-			SELF.Views.configuration( false );
 			SELF.config.set( details );
 		} )( this ) );
 		electron.ipcMain.on( "reset-options", ( SELF => ( event, details ) => {
