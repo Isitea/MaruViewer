@@ -3,7 +3,7 @@
   "productName": "Maru Viewer",
   "author": "Isitea <isitea@isitea.net> (http://isitea.net/)",
   "description": "Desktop application version of MaruCleaner(chrome extension)",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "main": "app/backend/server.js",
   "devDependencies": {
     "electron": "1.8.2"
@@ -27,19 +27,19 @@
     "productName": "Maru Viewer",
     "appId": "net.isitea.electron.maruviewer",
     "copyright": "Copyright @ 2018 Isitea",
-    "buildVersion": "0.1.0",
+    "buildVersion": "0.1.1",
     "asar": true,
     "win": {
       "target": [
         {
-          "target": "nsis",
+          "target": "msi",
           "arch": [
             "x64",
             "ia32"
           ]
         },
         {
-          "target": "zip",
+          "target": "squirrel",
           "arch": [
             "x64",
             "ia32"
@@ -48,10 +48,10 @@
       ],
       "icon": "icon.ico"
     },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "installerHeaderIcon": "app/resource/icon.png"
+    "squirrelWindows": {
+      "iconUrl": "http://isitea.net/electron/net.isitea.maruviewer/icon.png",
+      "useAppIdAsId": true,
+      "msi": true
     },
     "directories": {
       "output": "dist/",
@@ -59,7 +59,9 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "Isitea"
+      "owner": "Isitea",
+      "repo": "MaruViewer"
     }
-  }
+  },
+  "dependencies": {}
 }

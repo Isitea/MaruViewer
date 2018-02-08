@@ -3,10 +3,12 @@ const electron = require('electron');
 const path = require('path');
 const EventEmitter = require('events');
 const url = require('url');
+const log = require('electron-log');
 const { autoUpdater } = require('electron-updater');
 const { configIO } = require( "../module/config-io" );
 const DEBUG = false;
-process.env.GH_TOKEN = "9ad7fb4b10b3599c066ccd8dd73b8d84c1e9f1ee";
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
 
 class WindowManager extends EventEmitter {
 	constructor ( { settings } ) {
@@ -611,7 +613,7 @@ function init() {
 
 		Views.main();
 		autoUpdater.checkForUpdatesAndNotify();
-	} ).catch( e => console.error( 5, e ) ) );
+	} ).catch( e => console.error( "", e ) ) );
 
 	if ( DEBUG ) {
 		electron.app.commandLine.appendSwitch( 'remote-debugging-port', '9222' );
