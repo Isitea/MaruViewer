@@ -26,15 +26,14 @@ class WindowManager extends EventEmitter {
 					SELF.emit( "updateTray" );
 					window.once( "ready-to-show", event => event.sender.show() );
 					window.on( "closed", closed );
-				} else {
-					if ( window !== SELF.config ) window.on( "hide", event => event.sender.close() );
 				}
 			} )( { window } ) );
 		} );
 	}
 
-	initialize ( defOpt ) {
+	initialize ( { defOpt, Observer } ) {
 		this.defOpt = defOpt;
+		this.Observer = Observer;
 		this.windows = [];
 	}
 
@@ -124,6 +123,7 @@ class WindowManager extends EventEmitter {
 		let Opt = configIO.merge( {}, this.defOpt ), actionType = "episode";
 		if ( this.constructor.findAndShow.call( this, actionType ) ) {}
 		if ( !uri ) return;
+		else this.Observer.clear( uri );
 
 		if ( this.settings.resize && ( this.settings[actionType] && this.settings[actionType].width && this.settings[actionType].height ) ) {
 			Opt.width = this.settings[actionType].width;
@@ -166,9 +166,7 @@ class WindowManager extends EventEmitter {
 				pathname: path.join( __dirname, '../frontend/options.html'),
 				protocol: "file"
 			} ) );
-			this.config.on( "closed", ( SELF => () => {
-				SELF.config = null;
-			} )( this ) )
+			this.config.on( "closed", ( SELF => () => delete SELF.config )( this ) )
 		}
 	}
 }
@@ -269,13 +267,29 @@ class TrayManager {
 		this.settings = settings;
 	}
 	
-	initialize ( { Views } ) {
+	initialize ( { Views, Observer } ) {
 		this.Views = Views;
+		this.Observer = Observer;
 	}
 	
 	listen () {
 		this.Tray = new electron.Tray( path.join( __dirname, '../resource/icon.png') );
 		let tray_menu = new electron.Menu();
+		tray_menu.append( new electron.MenuItem( {
+			label: "Show unread notifications",
+			click: ( SELF => ( menuItem, browserWindow, event ) => {
+				SELF.Observer.showUnread();
+			} )( this )
+		} ) );
+		tray_menu.append( new electron.MenuItem( {
+			label: "Clear unread notifications",
+			click: ( SELF => ( menuItem, browserWindow, event ) => {
+				SELF.Observer.clear();
+			} )( this )
+		} ) );
+		tray_menu.append( new electron.MenuItem( {
+			type: "separator"
+		} ) );
 		tray_menu.append( new electron.MenuItem( {
 			label: "Maru Viewer",
 			click: ( SELF => ( menuItem, browserWindow, event ) => {
@@ -311,6 +325,9 @@ class TrayManager {
 			role: "quit"
 		} ) );
 		this.Tray.setContextMenu( tray_menu );
+		this.Tray.on( "click", ( SELF => ( menuItem, browserWindow, event ) => {
+			SELF.Views.main();
+		} )( this ) );
 		this.Views.on( "updateTray",( SELF => () => {
 			if ( SELF.Views.windows.length ) this.Tray.setToolTip( `MaruViewer is running (${SELF.Views.windows.length})` );
 		} )( this ) );
@@ -318,6 +335,7 @@ class TrayManager {
 
 	close () {
 		this.Tray.destroy();
+		delete this.Tray;
 	}
 }
 class NetworkManager {
@@ -365,6 +383,7 @@ class CommunicationManager {
 		} )( this ) );
 
 		electron.ipcMain.on( "request-download", ( SELF => ( event, details ) => {
+			console.log( SELF.settings.path );
 			if ( SELF.settings.path && SELF.settings.path.length > 0 ) details.path = SELF.settings.path + '/' + details.title;
 			else details.path = details.title;
 			SELF.Downloader.download( details );
@@ -395,20 +414,21 @@ class NotificationManager {
 		this.Views = Views;
 	}
 
-	notify ( { title, body, uri, path } ) {
+	notify ( { title, body, uri, path, image } ) {
 		if ( !this.active ) return false;
-		new Promise( ( resolve, reject ) => {
+		return new Promise( ( resolve, reject ) => {
 			this.notification.notify( {
 				title,
 				text: body,
-				onClickFunc: ( ( { uri, path } ) => event => { resolve( { uri, path } ); event.closeNotification();  } )( { uri, path } ),
+				image: image,
+				onClickFunc: ( ( { uri, path } ) => note => resolve( { uri, path, note } ) )( { uri, path } ),
 				onCloseFunc: () => resolve( {} )
 			} );
-		} )
-			.then( ( { uri, path } ) => {
+		} ).then( ( { uri, path, note } ) => {
+				if ( note ) note.closeNotification();
 				if ( uri ) this.Views.episode( { uri } );
 				if ( path ) electron.shell.showItemInFolder( path );
-		} ).catch( e => console.error( 3, e ) );
+		} ).catch( e => console.error( `Errors on notifying`, e ) );
 	}
 
 	listen () {
@@ -416,6 +436,7 @@ class NotificationManager {
 	}
 
 	close () {
+		this.active = false;
 		try { this.notification.closeAll(); }
 		catch ( e ) { console.error( `Errors on disabling notification module: ${e}` ); }
 	}
@@ -427,6 +448,25 @@ class MaruObserver {
 
 	initialize ( { Notifier } ) {
 		this.Notifier = Notifier;
+		this.unread = [];
+	}
+
+	clear ( uri ) {
+		if ( uri ) {
+			let index = this.unread.findIndex( item => item.link === uri );
+			if ( index > -1 ) this.unread.splice( index, 1 );
+		} else {
+			while ( this.unread.length ) {
+				this.unread.shift();
+			}
+		}
+	}
+
+	showUnread () {
+		while ( this.unread.length ) {
+			let item = this.unread.shift();
+			this.Notifier.notify( { title: "Unread message - Comic updated", body: item.title, uri: item.link, image: item.image } );
+		}
 	}
 
 	listen () {
@@ -438,8 +478,10 @@ class MaruObserver {
 		} ) );
 
 		electron.ipcMain.on( "maru-updated", ( SELF => ( sender, message ) => {
-			for ( const item of message )
-				SELF.Notifier.notify( { title: "Comic updated", body: item.title, uri: item.link } );
+			for ( const item of message ) {
+				SELF.unread.push( item );
+				SELF.Notifier.notify( { title: "Comic updated", body: item.title, uri: item.link, image: item.image } );
+			}
 		} )( this ) );
 	}
 
@@ -496,7 +538,7 @@ function init() {
 		updateChecker: true,
 		notification: true,
 		sameAuthor: true,
-		path: ""
+		path: `${electron.app.getPath( "downloads" )}/MaruViewer`
 	};
 	const settings = {};
 	const config = new configIO( { file: "maruviewer.settings.json", writeOnChange: true, chainingObject: settings }, defaultConfiguration );
@@ -546,15 +588,15 @@ function init() {
 	} );
 
 	electron.app.on( 'ready', event => config.options.then( json => {
-		Views.initialize( {
+		Views.initialize( { defOpt: {
 			width: 440,
 			height: 740,
 			show: false,
 			minWidth: 320,
 			minHeight: 440,
 			icon: path.join( __dirname, '../resource/icon.png')
-		} );
-		Tray.initialize( { Views } );
+		}, Observer } );
+		Tray.initialize( { Views, Observer } );
 		Tray.listen();
 		Shortcut.initialize( { Views } );
 		Network.initialize();
