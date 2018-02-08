@@ -1,5 +1,5 @@
 {
-  "name": "net.isitea.electron.maruviewer",
+  "name": "maruviewer",
   "productName": "Maru Viewer",
   "author": "Isitea <isitea@isitea.net> (http://isitea.net/)",
   "description": "Desktop application version of MaruCleaner(chrome extension)",
@@ -12,10 +12,13 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "1.8.2",
-    "electron-builder": "^19.56.0"
+    "electron-builder": "^19.56.0",
+    "electron-builder-lib": "^20.0.2",
+    "electron-builder-squirrel-windows": "^20.0.2"
   },
   "scripts": {
     "install": "electron-builder install-app-deps",
+    "start": "electron app/.",
     "dist": "electron-builder",
     "pack": "electron-builder --dir",
     "build:osx": "build --mac",
@@ -24,36 +27,34 @@
     "build:linux64": "build --linux --x64",
     "build:win": "npm run build:win32 && npm run build:win64",
     "build:win32": "build --win --ia32",
-    "build:win64": "build --win --x64"
+    "build:win64": "build --win --x64",
+    "release": "build --publish always"
   },
   "build": {
-    "productName": "Maru Viewer",
     "appId": "net.isitea.electron.maruviewer",
     "copyright": "Copyright @ 2018 Isitea",
-    "buildVersion": "34",
+    "buildVersion": "0.1.1",
     "asar": true,
     "win": {
       "target": [
         {
           "target": "msi",
           "arch": [
-            "x64",
             "ia32"
           ]
         },
         {
           "target": "squirrel",
           "arch": [
-            "x64",
-            "ia32"
+            "x64"
           ]
         }
       ],
-      "icon": "icon.ico"
+      "icon": "resource/icon.ico"
     },
     "squirrelWindows": {
       "iconUrl": "http://isitea.net/electron/net.isitea.maruviewer/icon.png",
-      "useAppIdAsId": true,
+      "loadingGif": "resource/giphy.gif",
       "msi": true
     },
     "directories": {
