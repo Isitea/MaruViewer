@@ -1,20 +1,23 @@
 {
-  "name": "maruviewer.electron.isitea",
+  "name": "net.isitea.electron.maruviewer",
   "productName": "Maru Viewer",
   "author": "Isitea <isitea@isitea.net> (http://isitea.net/)",
   "description": "Desktop application version of MaruCleaner(chrome extension)",
   "version": "0.1.1",
   "main": "app/backend/server.js",
-  "devDependencies": {
-    "electron": "1.8.2"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/Isitea/MaruViewer.git"
   },
   "license": "MIT",
-  "postinstall": "electron-builder install-app-deps",
+  "devDependencies": {
+    "electron": "1.8.2",
+    "electron-builder": "^19.56.0"
+  },
   "scripts": {
+    "install": "electron-builder install-app-deps",
+    "dist": "electron-builder",
+    "pack": "electron-builder --dir",
     "build:osx": "build --mac",
     "build:linux": "npm run build:linux32 && npm run build:linux64",
     "build:linux32": "build --linux --ia32",
@@ -27,7 +30,7 @@
     "productName": "Maru Viewer",
     "appId": "net.isitea.electron.maruviewer",
     "copyright": "Copyright @ 2018 Isitea",
-    "buildVersion": "0.1.1",
+    "buildVersion": "34",
     "asar": true,
     "win": {
       "target": [
@@ -57,11 +60,13 @@
       "output": "dist/",
       "app": "app"
     },
-    "publish": [ {
-      "provider": "github",
-      "owner": "Isitea",
-      "repo": "MaruViewer"
-    } ]
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Isitea",
+        "repo": "MaruViewer"
+      }
+    ]
   },
   "dependencies": {}
 }

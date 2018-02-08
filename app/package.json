@@ -1,10 +1,15 @@
 {
-  "name": "maruviewer.electron.isitea",
+  "name": "net.isitea.electron.maruviewer",
   "productName": "Maru Viewer",
   "author": "Isitea <isitea@isitea.net> (http://isitea.net/)",
   "description": "Desktop application version of MaruCleaner(chrome extension)",
   "version": "0.1.1",
   "main": "backend/server.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Isitea/MaruViewer.git"
+  },
+  "license": "MIT",
   "dependencies": {
     "electron-log": "^2.2.14",
     "electron-notify": "^0.1.0",
@@ -12,10 +17,5 @@
     "jsonfile": "^4.0.0",
     "jszip": "^3.1.5",
     "mkpath": "^1.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Isitea/MaruViewer.git"
-  },
-  "license": "MIT"
+  }
 }

@@ -1,5 +1,9 @@
 "use strict";
 const electron = require('electron');
+if ( require( 'electron-squirrel-startup' ) ) {
+	electron.app.quit();
+	return;
+}
 const path = require('path');
 const EventEmitter = require('events');
 const url = require('url');
