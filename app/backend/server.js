@@ -10,7 +10,7 @@ const url = require('url');
 const log = require('electron-log');
 const { autoUpdater } = require('electron-updater');
 const { configIO } = require( "../module/config-io" );
-const DEBUG = false;
+const DEBUG = true;
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
@@ -199,9 +199,6 @@ class DownloadManager {
 					NET.end();
 				} );
 			}
-			function padZ ( n, l ) {
-				return ( new Array( l + 1 ).join( '0' ) + n ).slice( -l );
-			}
 
 			const fs = require('fs');
 			const mkpath = require('mkpath');
@@ -214,7 +211,7 @@ class DownloadManager {
 
 				let Files = [], index = 0;
 				for ( const content of info.Lists )
-					Files.push( FileRequest( content.url ).then( ( ( mime, index ) => buffer => zip.file( `${ padZ( index, 3 ) }.${ mime }`, buffer ) )( content.mime.split( '/' ).pop(), index++ ) ) );
+					Files.push( FileRequest( content.url ).then( ( ( mime, index ) => buffer => zip.file( `${ index.toString().padStart( 3, "0" ) }.${ mime }`, buffer ) )( content.mime.split( '/' ).pop(), index++ ) ) );
 
 				Promise.all( Files )
 					.catch( err => { throw { title: "Error on downloading", body: `Fail to download some images in [ ${info.title} - ${info.episode} ]` } } )

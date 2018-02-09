@@ -10,6 +10,7 @@ const { ImageExLoader } = require( "../module/ImageExLoader" );
 const { acrDOM } = require( "../module/acrDOM" );
 const { ipcRenderer } = require( "electron" );
 const siteRecognizer = "marumaru";
+let previousTitle;
 
 function Ajax ( url, type = "document", response ) {
 	let xhr = new XMLHttpRequest();
@@ -155,7 +156,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 							this.value = iManager.title( "", e.target.value );
 							break;
 						case "episode":
-							this.valu = iManager.episode( e.target.value );
+							this.value = iManager.episode( e.target.value );
 							break;
 						default:
 					}
@@ -201,18 +202,20 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 						BODY.removeEventListener( "keydown", Keyboard );
 						break;
 					case "mouse":
-						dom.remove( BODY.querySelector( ".functionBox" ) );
+						dom.remove( document.querySelector( ".functionBox" ) );
 						break;
 					default:
 				}
 			};
 			this.download = () => {
+				if ( !document.querySelector( ".downloadble" ) ) return alert( "Try after" );
 				if ( document.querySelector( ".functionBox" ) === null ) return;
 				Progress.Element().classList.add( "downloading" );
 				_SELF.detach( "mouse" );
 				iManager.download( ( !!Number( document.body.dataset.automatic ) ? document.querySelector( 'a.forward' ) : undefined ) );
 			};
 			this.onComplete = () => {
+				Progress.Element().classList.add( "downloadable" );
 				if ( !!Number( document.body.dataset.automatic ) ) _SELF.download();
 			};
 		}
@@ -333,6 +336,11 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 			controller.querySelector( ".dropdown .selected" ).scrollIntoView( true );
 			controller.querySelector( ".dropdown .dropdown-content" ).style.cssText = "";
 		}, { once: true } );
+
+		if ( previousTitle !== "Episode" ) {
+			iManager.title( "", previousTitle );
+			BODY.querySelector( ".dropdown .dropbtn .title" ).value = previousTitle;
+		}
 		DOCUMENT_RESPONSE( DOCUMENT );
 	}
 
@@ -398,6 +406,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 		}
 	}
 
+	previousTitle = document.body.dataset.title || "Episode";
 	const dom = new acrDOM(), BODY = DOCUMENT.body;
 	const iManager = new contentManager( DOCUMENT.title.match( /\s*(.+)\s+\|\s/i )[ 1 ], ORIGINAL_URI );
 	cleanUp()

@@ -31,6 +31,7 @@ function contentManager ( title = "", ORIGINAL_URI ) {
 		if ( NT !== undefined ) title = NT;
 		if ( e === undefined ) return title;
 		title = escapeCharacter( title ).replace( e, "" ).replace( /^[.\s]*|[.\s]*$/g, "" );
+		document.body.dataset.title = title;
 		document.title = title + " - " + episode;
 
 		return title;
