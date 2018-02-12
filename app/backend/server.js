@@ -10,7 +10,7 @@ const url = require('url');
 const log = require('electron-log');
 const { autoUpdater } = require('electron-updater');
 const { configIO } = require( "../module/config-io" );
-const DEBUG = true;
+const DEBUG = false;
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
@@ -360,10 +360,11 @@ class CommunicationManager {
 	constructor ( { settings } ) {
 		this.settings = settings;
 	}
-	initialize ( { Views, Downloader, config } ) {
+	initialize ( { Views, Downloader, config, Notifier } ) {
 		this.Views = Views;
 		this.Downloader = Downloader;
 		this.config = config;
+		this.Notifier = Notifier;
 	}
 
 	listen () {
@@ -386,20 +387,25 @@ class CommunicationManager {
 		} )( this ) );
 
 		electron.ipcMain.on( "request-download", ( SELF => ( event, details ) => {
-			console.log( SELF.settings.path );
 			if ( SELF.settings.path && SELF.settings.path.length > 0 ) details.path = SELF.settings.path + '/' + details.title;
 			else details.path = details.title;
 			SELF.Downloader.download( details );
+		} )( this ) );
+		electron.ipcMain.on( "queue-download", ( SELF => ( event, details ) => {
+			SELF.Notifier.notify( details );
 		} )( this ) );
 	}
 
 	close () {
 		electron.ipcMain.removeAllListeners( "open-comic" );
 		electron.ipcMain.removeAllListeners( "open-episode" );
-		electron.ipcMain.removeAllListeners( "request-download" );
-		electron.ipcMain.removeAllListeners( "reset-options" );
-		electron.ipcMain.removeAllListeners( "apply-options" );
+
 		electron.ipcMain.removeAllListeners( "read-options" );
+		electron.ipcMain.removeAllListeners( "apply-options" );
+		electron.ipcMain.removeAllListeners( "reset-options" );
+
+		electron.ipcMain.removeAllListeners( "request-download" );
+		electron.ipcMain.removeAllListeners( "queue-download" );
 	}
 }
 class NotificationManager {
@@ -604,7 +610,7 @@ function init() {
 		Shortcut.initialize( { Views } );
 		Network.initialize();
 		Network.listen();
-		Communicator.initialize( { Views, Downloader, config } );
+		Communicator.initialize( { Views, Downloader, config, Notifier } );
 		Communicator.listen();
 		Downloader.initialize( { Notifier } );
 		Downloader.listen();

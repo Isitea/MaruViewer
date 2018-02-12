@@ -208,14 +208,25 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 				}
 			};
 			this.download = () => {
-				if ( !document.querySelector( ".downloadble" ) ) return alert( "Try after" );
+				if ( !document.body.classList.contains( "downloadable" ) ) {
+					if ( !Number( document.body.dataset.automatic ) ) {
+						document.body.dataset.automatic = Number( !Number( document.body.dataset.automatic ) );
+						document.body.dataset.once = "enabled";
+						ipcRenderer.send( "queue-download", { title: `Download queue added - ${document.title}`, body: "Downloading will start after images are completely loaded.\nDon't close page until start downloading." } );
+					}
+					return;
+				}
+				if ( document.body.dataset.once === "enabled" ) {
+					document.body.dataset.automatic = Number( !Number( document.body.dataset.automatic ) );
+					delete document.body.dataset.once;
+				}
 				if ( document.querySelector( ".functionBox" ) === null ) return;
 				Progress.Element().classList.add( "downloading" );
 				_SELF.detach( "mouse" );
 				iManager.download( ( !!Number( document.body.dataset.automatic ) ? document.querySelector( 'a.forward' ) : undefined ) );
 			};
 			this.onComplete = () => {
-				Progress.Element().classList.add( "downloadable" );
+				document.body.classList.add( "downloadable" );
 				if ( !!Number( document.body.dataset.automatic ) ) _SELF.download();
 			};
 		}
@@ -407,6 +418,7 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 	}
 
 	previousTitle = document.body.dataset.title || "Episode";
+	document.body.classList.remove( "downloadable" );
 	const dom = new acrDOM(), BODY = DOCUMENT.body;
 	const iManager = new contentManager( DOCUMENT.title.match( /\s*(.+)\s+\|\s/i )[ 1 ], ORIGINAL_URI );
 	cleanUp()

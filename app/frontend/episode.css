@@ -182,6 +182,10 @@ body[data-automatic="1"] .functionBox .Automatic {
     color: lime;
 }
 
+body[data-automatic="1"][data-once="enabled"] .functionBox .Automatic {
+    color: hotpink;
+}
+
 .functionBox [disabled] {
     color: rgb(249, 249, 249);
 }
