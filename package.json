@@ -3,7 +3,7 @@
   "productName": "Maru Viewer",
   "author": "Isitea <isitea@isitea.net> (http://isitea.net/)",
   "description": "Desktop application version of MaruCleaner(chrome extension)",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": "app/backend/server.js",
   "repository": {
     "type": "git",
@@ -33,7 +33,6 @@
   "build": {
     "appId": "net.isitea.electron.maruviewer",
     "copyright": "Copyright @ 2018 Isitea",
-    "buildVersion": "0.1.2",
     "asar": true,
     "win": {
       "target": [
