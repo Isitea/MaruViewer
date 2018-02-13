@@ -378,37 +378,33 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 		}
 
 		if ( BODY.querySelectorAll( ".pass-box" ).length ) {
-			BODY.querySelectorAll( ".pass-box [name=pass]" )[ 0 ].value = "qndxkr";
-			if ( BODY.querySelectorAll( ".g-recaptcha[data-size=invisible]" ) || BODY.querySelectorAll( ".g-recaptcha" ) === null ) {
-				dom.append( {
-					iframe: {
-						src: ORIGINAL_URI,
-						addEventListener: [ {
-							type: "load",
-							listener: e => {
-								let link = e.path[0].contentWindow.location.href;
-								if( ORIGINAL_URI !== link ) {
-									dom.remove( e.path[0] );
-									openEpisode( null, { link } );
-								}
+			dom.append( {
+				iframe: {
+					src: ORIGINAL_URI,
+					addEventListener: [ {
+						type: "load",
+						listener: e => {
+							let link = e.path[0].contentWindow.location.href;
+							if( ORIGINAL_URI !== link ) {
+								dom.remove( e.path[0] );
+								openEpisode( null, { link } );
 							}
-						}, {
-							type: "load",
-							listener: ( e ) => {
-								e.stopImmediatePropagation();
-								let _w = e.path[0].contentWindow, _d = _w.document;
-								_d.querySelector( ".pass-box [name=pass]" ).value = "qndxkr";
-								_d.body.style.overflow = "hidden";
-								_d.querySelector( ".pass-box" ).style
-									.cssText = 'width: 100vw, height: 100vh; position: fixed; top: 0; left: 0; z-index: 999999999; background: black;';
-								e.path[0].style.opacity = "1";
-								setTimeout( () => _w.grecaptcha.execute(), 250 );
-							},
-							option: { once: true }
-						} ]
-					}
-				}, document.body );
-			}
+						}
+					}, {
+						type: "load",
+						listener: ( e ) => {
+							e.stopImmediatePropagation();
+							let _w = e.path[0].contentWindow, _d = _w.document;
+							if ( _d.querySelector( ".pass-box [name=pass]" ) ) _d.querySelector( ".pass-box [name=pass]" ).value = "qndxkr";
+							_d.body.style.overflow = "hidden";
+							_d.querySelector( ".pass-box" ).style
+								.cssText = 'width: 100vw, height: 100vh; position: fixed; top: 0; left: 0; z-index: 999999999; background: black;';
+							e.path[0].style.opacity = "1";
+							if ( _d.querySelectorAll( ".g-recaptcha" ) ) setTimeout( () => _w.grecaptcha.execute(), 250 );
+						}
+					} ]
+				}
+			}, document.body );
 		} else {
 			DOMParser( BODY.querySelector( ".gallery-template" ), ( list ) => {
 				list.forEach( ( src ) => { iManager.load( ORIGIN + src ); } );
