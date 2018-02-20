@@ -65,6 +65,41 @@
 										oList.push( new Image() );
 									}
 									break;
+								case "iframe":
+									let iframe = document.createElement( "iframe" );
+									oList.push( iframe );
+									setTimeout( ( iframe => {
+										function DOMContentLoaded ( e ) {
+											let event = new Event( "DOMContentLoaded" );
+											event.window = iframe.contentWindow;
+											iframe.dispatchEvent( event );
+											iframe.contentDocument.dispatched = true;
+										}
+										function readystatechange ( e ) {
+											let event = new Event( "readystatechange" );
+											iframe.dispatchEvent( event );
+										}
+										function FrameUnload () {
+											iframe.contentDocument.dispatched = false;
+											let event = new Event( "FrameUnload" );
+											event.window = iframe.contentWindow;
+											iframe.dispatchEvent( event );
+										}
+										function unload () {
+											iframe.contentWindow.addEventListener( "unload", FrameUnload );
+											iframe.contentDocument.addEventListener( "DOMContentLoaded", DOMContentLoaded );
+											iframe.contentDocument.addEventListener( "readystatechange", readystatechange );
+											if ( iframe._pastDocument !== iframe.contentDocument && !( iframe.contentDocument.URL === "about:blank" && iframe.contentWindow.history.length === 1 ) ) {
+												iframe._pastDocument = iframe.contentDocument;
+											}
+											if ( !iframe.contentDocument.dispatched ) {
+												iframe.interval = setTimeout( unload );
+											}
+										}
+										iframe.addEventListener( "FrameUnload", unload );
+										return unload;
+									} )( iframe ) );
+									break;
 								default:
 									oList.push( document.createElement( TagName ) );
 							}

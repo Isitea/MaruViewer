@@ -352,7 +352,7 @@ class NetworkManager {
 
 	listen () {
 		electron.session.defaultSession.webRequest.onBeforeRequest( {
-			urls: [ '*://compass.adop.cc/*', '*://tab2.clickmon.co.kr/*' ]
+			urls: [ '*://compass.adop.cc/*', '*://*.clickmon.co.kr/*', '*://*.dreamsearch.or.kr/*' ]
 		}, ( details, response ) => response( { cancel: true } ) );
 	}
 }

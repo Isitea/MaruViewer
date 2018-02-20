@@ -381,27 +381,31 @@ function Wasabisyrup ( DOCUMENT, ORIGIN, DOCUMENT_RESPONSE, ORIGINAL_URI ) {
 			dom.append( {
 				iframe: {
 					src: ORIGINAL_URI,
+					id: 'Protection',
+					csp: "default-src https://www.gstatic.com https://fonts.gstatic.com https://www.google.com; style-src 'unsafe-inline' *; img-src 'self';",
 					addEventListener: [ {
-						type: "load",
+						type: "DOMContentLoaded",
 						listener: e => {
-							let link = e.path[0].contentWindow.location.href;
+							let link = e.window.document.URL;
 							if( ORIGINAL_URI !== link ) {
-								dom.remove( e.path[0] );
+								dom.remove( e.window.frameElement );
 								openEpisode( null, { link } );
 							}
 						}
 					}, {
-						type: "load",
-						listener: ( e ) => {
+						type: "DOMContentLoaded",
+						listener: e => {
 							e.stopImmediatePropagation();
-							let _w = e.path[0].contentWindow, _d = _w.document;
+							let _w = e.window, _d = _w.document;
+							_w.frameElement.style.opacity = "1";
 							if ( _d.querySelector( ".pass-box [name=pass]" ) ) _d.querySelector( ".pass-box [name=pass]" ).value = "qndxkr";
 							_d.body.style.overflow = "hidden";
-							_d.querySelector( ".pass-box" ).style
-								.cssText = 'width: 100vw, height: 100vh; position: fixed; top: 0; left: 0; z-index: 999999999; background: black;';
-							e.path[0].style.opacity = "1";
-							if ( _d.querySelectorAll( ".g-recaptcha" ) ) setTimeout( () => _w.grecaptcha.execute(), 250 );
+							if ( _d.querySelector( ".pass-box" ) ) _d.querySelector( ".pass-box" ).style.cssText = 'width: 100vw, height: 100vh; position: fixed; top: 0; left: 0; z-index: 999999999; background: black;';
+							if ( _d.querySelectorAll( ".g-recaptcha" ) && !document.querySelector( 'img[src="/captcha1"]' ) ) setTimeout( () => _w.grecaptcha.execute(), 250 );
 						}
+					}, {
+						type: "FrameUnload",
+						listener: e => e.window.frameElement.style.opacity = "0"
 					} ]
 				}
 			}, document.body );
